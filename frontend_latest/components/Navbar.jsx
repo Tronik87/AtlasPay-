@@ -21,6 +21,7 @@ export default function Navbar() {
         <Link href="/">Dashboard</Link>
         <Link href="/simulate">Simulate</Link>
         <Link href="/route">Routes</Link>
+        <Link href="/crypto">Crypto</Link>
         <Link href="/risk">Risk</Link>
       </div>
     </div>
