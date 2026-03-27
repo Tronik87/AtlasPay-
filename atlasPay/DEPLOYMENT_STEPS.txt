@@ -1,0 +1,156 @@
+═══════════════════════════════════════════════════════════════════════
+    STEP-BY-STEP DEPLOYMENT WORKFLOW
+═══════════════════════════════════════════════════════════════════════
+
+📋 PHASE 1: GET READY
+─────────────────────────────────────────────────────────────────────
+
+□ Step 1: Get your private key from MetaMask
+  └─ Copy the ONE private key from YOUR account
+  └─ It starts with 0x and is 66 characters long
+  └─ Example: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+□ Step 2: Get test MATIC
+  └─ Visit: https://faucet.polygon.technology/
+  └─ Select "Polygon Amoy"
+  └─ Enter your wallet address (the one matching your private key)
+  └─ Click "Submit" and wait for MATIC to arrive (~30 seconds)
+
+═══════════════════════════════════════════════════════════════════════
+📋 PHASE 2: CONFIGURE CONTRACT
+─────────────────────────────────────────────────────────────────────
+
+□ Step 3: Create contract/.env file
+
+  Command:
+    cd /home/sachithan/compsci/devshouse/atlasPay/contract
+    nano .env
+
+  Type in the file (NO quotes):
+    PRIVATE_KEY=0xYourActualPrivateKeyHere
+    POLYGON_AMOY_RPC=https://rpc-amoy.polygon.technology
+
+  Save and exit:
+    Press Ctrl+X
+    Press Y
+    Press Enter
+
+═══════════════════════════════════════════════════════════════════════
+📋 PHASE 3: DEPLOY CONTRACT
+─────────────────────────────────────────────────────────────────────
+
+□ Step 4: Install dependencies and compile
+
+  cd /home/sachithan/compsci/devshouse/atlasPay/contract
+  npm install
+  npx hardhat compile
+
+□ Step 5: Deploy to Polygon Amoy
+
+  npx hardhat run scripts/deploy.js --network amoy
+
+□ Step 6: COPY THE CONTRACT ADDRESS FROM OUTPUT
+
+  You will see:
+    ✅ AtlasPayEscrow deployed to: 0x1234567890abcdef...
+                                   ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+                                   COPY THIS ENTIRE ADDRESS!
+
+  Save it somewhere temporarily (like a text file)
+
+═══════════════════════════════════════════════════════════════════════
+📋 PHASE 4: CONFIGURE BACKEND
+─────────────────────────────────────────────────────────────────────
+
+□ Step 7: Create backend/.env file
+
+  Command:
+    cd /home/sachithan/compsci/devshouse/atlasPay/backend
+    nano .env
+
+  Type in the file (replace with YOUR values, NO quotes):
+    PRIVATE_KEY=0xYourActualPrivateKeyHere
+    CONTRACT_ADDRESS=0xYourDeployedContractAddressHere
+    POLYGON_AMOY_RPC=https://rpc-amoy.polygon.technology
+
+  Save and exit:
+    Press Ctrl+X
+    Press Y
+    Press Enter
+
+═══════════════════════════════════════════════════════════════════════
+📋 PHASE 5: CONFIGURE FRONTEND
+─────────────────────────────────────────────────────────────────────
+
+□ Step 8: Create frontend/.env file
+
+  Command:
+    cd /home/sachithan/compsci/devshouse/atlasPay/frontend
+    nano .env
+
+  Type in the file (NO quotes):
+    VITE_CONTRACT_ADDRESS=0xYourDeployedContractAddressHere
+
+  Save and exit:
+    Press Ctrl+X
+    Press Y
+    Press Enter
+
+═══════════════════════════════════════════════════════════════════════
+📋 PHASE 6: RUN THE APPLICATION
+─────────────────────────────────────────────────────────────────────
+
+□ Step 9: Start the backend (Terminal 1)
+
+  cd /home/sachithan/compsci/devshouse/atlasPay/backend
+  python3 -m venv venv
+  source venv/bin/activate
+  pip install -r requirements.txt
+  python main.py
+
+  You should see:
+    INFO: Uvicorn running on http://0.0.0.0:8000
+
+□ Step 10: Start the frontend (Terminal 2 - open a NEW terminal)
+
+  cd /home/sachithan/compsci/devshouse/atlasPay/frontend
+  npm install
+  npm run dev
+
+  You should see:
+    VITE ready in XXXms
+    Local: http://localhost:3000
+
+□ Step 11: Open the app
+
+  Open your browser and go to: http://localhost:3000
+
+═══════════════════════════════════════════════════════════════════════
+✅ CHECKLIST SUMMARY
+═══════════════════════════════════════════════════════════════════════
+
+Before deployment:
+  □ Have private key from MetaMask
+  □ Have test MATIC in wallet
+  □ Created contract/.env with private key (NO quotes!)
+
+After deployment:
+  □ Copied contract address from deployment output
+  □ Created backend/.env with private key AND contract address (NO quotes!)
+  □ Created frontend/.env with contract address (NO quotes!)
+
+Running:
+  □ Backend running on port 8000
+  □ Frontend running on port 3000
+  □ Browser open to http://localhost:3000
+
+═══════════════════════════════════════════════════════════════════════
+
+REMEMBER:
+• Use YOUR private key (from YOUR MetaMask)
+• Use ONE private key for all files
+• Contract address comes AFTER deployment
+• NO quotation marks in .env files
+• NO spaces around = sign
+
+═══════════════════════════════════════════════════════════════════════
