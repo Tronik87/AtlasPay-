@@ -1,0 +1,1 @@
+["amount_paid_mean", "amount_paid_std", "amount_paid_max", "amount_paid_min", "amount_paid_count", "receiver_nunique", "same_bank_mean", "currency_mismatch_mean", "is_night_mean"]
