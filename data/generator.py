@@ -47,50 +47,12 @@ def generate_channels(banks, density=0.03):
     channels = []
     n = len(banks)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    # 1. Backbone: Ring connection ensures at least one path
-    for i in range(n):
-=======
-=======
->>>>>>> parent of 60f34b3 (Added regions, time v/s cost based routing.)
     # Backbone (ensures connectivity)
     for i in range(n - 1):
 >>>>>>> parent of 60f34b3 (Added regions, time v/s cost based routing.)
         b1 = banks[i]
-        b2 = banks[(i + 1) % n] # modulo for ring
+        b2 = banks[i + 1]
 
-<<<<<<< HEAD
-        for currency in ["USD", "EUR"]: # backbone has multi-currency
-            rail = random.choice(rails)
-            time = random.uniform(0.1, 1.5)
-            channels.append(Channel(b1.name, b2.name, currency, rail, time))
-            channels.append(Channel(b2.name, b1.name, currency, rail, time))
-
-    # 2. Hub Connection: Bank0 connects to 20% of other banks
-    hub = banks[0]
-    for i in range(1, n):
-        if random.random() < 0.2:
-            other = banks[i]
-            currency = random.choice(currencies)
-            rail = "RTGS" # High speed for hub
-            channels.append(Channel(hub.name, other.name, currency, rail, 0.1))
-            channels.append(Channel(other.name, hub.name, currency, rail, 0.1))
-
-    # 3. Random edges
-    for i in range(n):
-        for j in range(i + 1, n):
-            if random.random() < density:
-                b1, b2 = banks[i], banks[j]
-                currency = random.choice(currencies)
-                rail = random.choice(rails)
-                time = random.uniform(0.5, 3)
-
-                channels.append(Channel(b1.name, b2.name, currency, rail, time))
-                channels.append(Channel(b2.name, b1.name, currency, rail, time))
-
-    return channels
-=======
         currency = random.choice(currencies)
         rail = random.choice(rails)
         time = random.uniform(0.5, 2)
@@ -119,10 +81,6 @@ def generate_channels(banks, density=0.03):
                 )
 
     return channels  # ✅ FIXED
-<<<<<<< HEAD
->>>>>>> parent of 60f34b3 (Added regions, time v/s cost based routing.)
-=======
->>>>>>> parent of 60f34b3 (Added regions, time v/s cost based routing.)
 
 
 # -------------------------------
