@@ -7,6 +7,7 @@ def calculate_edge_cost(data, amount):
     time = data.get('time', 1)
     liquidity = data.get('liquidity', 0)
 
+    fee = calculate_fee(amount, data.get('fee_rate', 0))
     fx_loss = amount * (1 - fx_rate)
     total = fee + fx_loss + time
     total = fee + fx_loss + time
@@ -14,7 +15,7 @@ def calculate_edge_cost(data, amount):
     return total, fee, fx_loss, time
 
 
-def find_best_route(G, source, target, amount):
+
 def find_best_route(G, source, target, amount):
 
     def weight(u, v, d):

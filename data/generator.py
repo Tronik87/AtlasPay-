@@ -48,9 +48,12 @@ def generate_channels(banks, density=0.03):
     n = len(banks)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     # 1. Backbone: Ring connection ensures at least one path
     for i in range(n):
 =======
+=======
+>>>>>>> parent of 60f34b3 (Added regions, time v/s cost based routing.)
     # Backbone (ensures connectivity)
     for i in range(n - 1):
 >>>>>>> parent of 60f34b3 (Added regions, time v/s cost based routing.)
@@ -116,6 +119,9 @@ def generate_channels(banks, density=0.03):
                 )
 
     return channels  # ✅ FIXED
+<<<<<<< HEAD
+>>>>>>> parent of 60f34b3 (Added regions, time v/s cost based routing.)
+=======
 >>>>>>> parent of 60f34b3 (Added regions, time v/s cost based routing.)
 
 
