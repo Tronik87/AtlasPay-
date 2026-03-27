@@ -3,5 +3,5 @@ class Channel:
         self.from_bank = from_bank
         self.to_bank = to_bank
         self.currency = currency
-        self.rail = rail  # SWIFT / SEPA / RTGS
+        self.rail = rail
         self.time = time
