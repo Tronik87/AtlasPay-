@@ -1,1 +1,1164 @@
-{"metadata":{"kernelspec":{"language":"python","display_name":"Python 3","name":"python3"},"language_info":{"name":"python","version":"3.12.12","mimetype":"text/x-python","codemirror_mode":{"name":"ipython","version":3},"pygments_lexer":"ipython3","nbconvert_exporter":"python","file_extension":".py"},"kaggle":{"accelerator":"nvidiaTeslaT4","dataSources":[{"sourceType":"datasetVersion","sourceId":12411329,"datasetId":2948142,"databundleVersionId":12977599}],"dockerImageVersionId":31329,"isInternetEnabled":false,"language":"python","sourceType":"notebook","isGpuEnabled":true}},"nbformat_minor":4,"nbformat":4,"cells":[{"cell_type":"code","source":"# This Python 3 environment comes with many helpful analytics libraries installed\n# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python\n# For example, here's several helpful packages to load\n\nimport numpy as np # linear algebra\nimport pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)\n\n# Input data files are available in the read-only \"../input/\" directory\n# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory\n\nimport os\nfor dirname, _, filenames in os.walk('/kaggle/input'):\n    for filename in filenames:\n        print(os.path.join(dirname, filename))\n\n# You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using \"Save & Run All\" \n# You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session","metadata":{"_uuid":"8f2839f25d086af736a60e9eeb907d3b93b6e0e5","_cell_guid":"b1076dfc-b9ad-4769-8c92-a6c4dae69d19","trusted":true,"execution":{"iopub.status.busy":"2026-03-27T14:52:16.834159Z","iopub.execute_input":"2026-03-27T14:52:16.834678Z","iopub.status.idle":"2026-03-27T14:52:16.864377Z","shell.execute_reply.started":"2026-03-27T14:52:16.834646Z","shell.execute_reply":"2026-03-27T14:52:16.863742Z"}},"outputs":[{"name":"stdout","text":"/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Medium_accounts.csv\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Small_Trans.csv\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Large_accounts.csv\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Large_Trans.csv\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Medium_Trans.csv\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Medium_accounts.csv\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Small_Patterns.txt\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Medium_Patterns.txt\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Small_accounts.csv\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Medium_Trans.csv\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Large_Patterns.txt\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Medium_Patterns.txt\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Large_accounts.csv\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Small_accounts.csv\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Large_Patterns.txt\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Large_Trans.csv\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Small_Patterns.txt\n/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Small_Trans.csv\n","output_type":"stream"}],"execution_count":36},{"cell_type":"code","source":"df= pd.read_csv('/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Medium_Trans.csv')\n\ndf.head()\ndf.shape\ndf.columns\ndf.info()\n\ndf.isnull().sum()\n\ndf.describe()","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-03-27T14:52:16.865849Z","iopub.execute_input":"2026-03-27T14:52:16.866288Z","iopub.status.idle":"2026-03-27T14:53:19.777182Z","shell.execute_reply.started":"2026-03-27T14:52:16.866264Z","shell.execute_reply":"2026-03-27T14:53:19.776541Z"}},"outputs":[{"name":"stdout","text":"<class 'pandas.core.frame.DataFrame'>\nRangeIndex: 31898238 entries, 0 to 31898237\nData columns (total 11 columns):\n #   Column              Dtype  \n---  ------              -----  \n 0   Timestamp           object \n 1   From Bank           int64  \n 2   Account             object \n 3   To Bank             int64  \n 4   Account.1           object \n 5   Amount Received     float64\n 6   Receiving Currency  object \n 7   Amount Paid         float64\n 8   Payment Currency    object \n 9   Payment Format      object \n 10  Is Laundering       int64  \ndtypes: float64(2), int64(3), object(6)\nmemory usage: 2.6+ GB\n","output_type":"stream"},{"execution_count":37,"output_type":"execute_result","data":{"text/plain":"          From Bank       To Bank  Amount Received   Amount Paid  \\\ncount  3.189824e+07  3.189824e+07     3.189824e+07  3.189824e+07   \nmean   2.944094e+05  4.093198e+05     6.431116e+06  4.417551e+06   \nstd    6.153149e+05  6.547003e+05     2.592744e+09  1.848313e+09   \nmin    0.000000e+00  0.000000e+00     1.000000e-06  1.000000e-06   \n25%    2.954000e+03  2.749600e+04     2.078700e+02  2.092300e+02   \n50%    3.902400e+04  1.468530e+05     1.469250e+03  1.471540e+03   \n75%    2.158840e+05  2.598930e+05     1.183530e+04  1.175781e+04   \nmax    3.225455e+06  3.225455e+06     8.158609e+12  8.158609e+12   \n\n       Is Laundering  \ncount   3.189824e+07  \nmean    1.104450e-03  \nstd     3.321491e-02  \nmin     0.000000e+00  \n25%     0.000000e+00  \n50%     0.000000e+00  \n75%     0.000000e+00  \nmax     1.000000e+00  ","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>From Bank</th>\n      <th>To Bank</th>\n      <th>Amount Received</th>\n      <th>Amount Paid</th>\n      <th>Is Laundering</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>count</th>\n      <td>3.189824e+07</td>\n      <td>3.189824e+07</td>\n      <td>3.189824e+07</td>\n      <td>3.189824e+07</td>\n      <td>3.189824e+07</td>\n    </tr>\n    <tr>\n      <th>mean</th>\n      <td>2.944094e+05</td>\n      <td>4.093198e+05</td>\n      <td>6.431116e+06</td>\n      <td>4.417551e+06</td>\n      <td>1.104450e-03</td>\n    </tr>\n    <tr>\n      <th>std</th>\n      <td>6.153149e+05</td>\n      <td>6.547003e+05</td>\n      <td>2.592744e+09</td>\n      <td>1.848313e+09</td>\n      <td>3.321491e-02</td>\n    </tr>\n    <tr>\n      <th>min</th>\n      <td>0.000000e+00</td>\n      <td>0.000000e+00</td>\n      <td>1.000000e-06</td>\n      <td>1.000000e-06</td>\n      <td>0.000000e+00</td>\n    </tr>\n    <tr>\n      <th>25%</th>\n      <td>2.954000e+03</td>\n      <td>2.749600e+04</td>\n      <td>2.078700e+02</td>\n      <td>2.092300e+02</td>\n      <td>0.000000e+00</td>\n    </tr>\n    <tr>\n      <th>50%</th>\n      <td>3.902400e+04</td>\n      <td>1.468530e+05</td>\n      <td>1.469250e+03</td>\n      <td>1.471540e+03</td>\n      <td>0.000000e+00</td>\n    </tr>\n    <tr>\n      <th>75%</th>\n      <td>2.158840e+05</td>\n      <td>2.598930e+05</td>\n      <td>1.183530e+04</td>\n      <td>1.175781e+04</td>\n      <td>0.000000e+00</td>\n    </tr>\n    <tr>\n      <th>max</th>\n      <td>3.225455e+06</td>\n      <td>3.225455e+06</td>\n      <td>8.158609e+12</td>\n      <td>8.158609e+12</td>\n      <td>1.000000e+00</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}],"execution_count":37},{"cell_type":"code","source":"\n\n#shorten the dataset and fix the column names\ndf = df.rename(columns={\n    'Account': 'sender',\n    'Account.1': 'receiver',\n    'Amount Paid': 'amount_paid',\n    'Amount Received': 'amount_received',\n    'Is Laundering': 'is_fraud'\n})\n\ndf['Timestamp'] = pd.to_datetime(df['Timestamp'])\ndf['hour'] = df['Timestamp'].dt.hour\ndf['day'] = df['Timestamp'].dt.day\n\n#diff in amt\ndf['amount_diff'] = df['amount_paid'] - df['amount_received']\n#currency mismatch\ndf['currency_mismatch'] = (df['Payment Currency'] != df['Receiving Currency']).astype(int)\n#same bank\ndf['same_bank'] = (df['From Bank'] == df['To Bank']).astype(int)\n\ndf.head()\n","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-03-27T14:53:19.778173Z","iopub.execute_input":"2026-03-27T14:53:19.778455Z","iopub.status.idle":"2026-03-27T14:53:30.752566Z","shell.execute_reply.started":"2026-03-27T14:53:19.778427Z","shell.execute_reply":"2026-03-27T14:53:30.751902Z"}},"outputs":[{"execution_count":38,"output_type":"execute_result","data":{"text/plain":"            Timestamp  From Bank     sender  To Bank   receiver  \\\n0 2022-09-01 00:17:00         20  800104D70       20  800104D70   \n1 2022-09-01 00:02:00       3196  800107150     3196  800107150   \n2 2022-09-01 00:17:00       1208  80010E430     1208  80010E430   \n3 2022-09-01 00:03:00       1208  80010E650       20  80010E6F0   \n4 2022-09-01 00:02:00       1208  80010E650       20  80010EA30   \n\n   amount_received Receiving Currency  amount_paid Payment Currency  \\\n0          6794.63          US Dollar      6794.63        US Dollar   \n1          7739.29          US Dollar      7739.29        US Dollar   \n2          1880.23          US Dollar      1880.23        US Dollar   \n3      73966883.00          US Dollar  73966883.00        US Dollar   \n4      45868454.00          US Dollar  45868454.00        US Dollar   \n\n  Payment Format  is_fraud  hour  day  amount_diff  currency_mismatch  \\\n0   Reinvestment         0     0    1          0.0                  0   \n1   Reinvestment         0     0    1          0.0                  0   \n2   Reinvestment         0     0    1          0.0                  0   \n3         Cheque         0     0    1          0.0                  0   \n4         Cheque         0     0    1          0.0                  0   \n\n   same_bank  \n0          1  \n1          1  \n2          1  \n3          0  \n4          0  ","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>Timestamp</th>\n      <th>From Bank</th>\n      <th>sender</th>\n      <th>To Bank</th>\n      <th>receiver</th>\n      <th>amount_received</th>\n      <th>Receiving Currency</th>\n      <th>amount_paid</th>\n      <th>Payment Currency</th>\n      <th>Payment Format</th>\n      <th>is_fraud</th>\n      <th>hour</th>\n      <th>day</th>\n      <th>amount_diff</th>\n      <th>currency_mismatch</th>\n      <th>same_bank</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>2022-09-01 00:17:00</td>\n      <td>20</td>\n      <td>800104D70</td>\n      <td>20</td>\n      <td>800104D70</td>\n      <td>6794.63</td>\n      <td>US Dollar</td>\n      <td>6794.63</td>\n      <td>US Dollar</td>\n      <td>Reinvestment</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>0.0</td>\n      <td>0</td>\n      <td>1</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>2022-09-01 00:02:00</td>\n      <td>3196</td>\n      <td>800107150</td>\n      <td>3196</td>\n      <td>800107150</td>\n      <td>7739.29</td>\n      <td>US Dollar</td>\n      <td>7739.29</td>\n      <td>US Dollar</td>\n      <td>Reinvestment</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>0.0</td>\n      <td>0</td>\n      <td>1</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>2022-09-01 00:17:00</td>\n      <td>1208</td>\n      <td>80010E430</td>\n      <td>1208</td>\n      <td>80010E430</td>\n      <td>1880.23</td>\n      <td>US Dollar</td>\n      <td>1880.23</td>\n      <td>US Dollar</td>\n      <td>Reinvestment</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>0.0</td>\n      <td>0</td>\n      <td>1</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>2022-09-01 00:03:00</td>\n      <td>1208</td>\n      <td>80010E650</td>\n      <td>20</td>\n      <td>80010E6F0</td>\n      <td>73966883.00</td>\n      <td>US Dollar</td>\n      <td>73966883.00</td>\n      <td>US Dollar</td>\n      <td>Cheque</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>0.0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>2022-09-01 00:02:00</td>\n      <td>1208</td>\n      <td>80010E650</td>\n      <td>20</td>\n      <td>80010EA30</td>\n      <td>45868454.00</td>\n      <td>US Dollar</td>\n      <td>45868454.00</td>\n      <td>US Dollar</td>\n      <td>Cheque</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>0.0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}],"execution_count":38},{"cell_type":"code","source":"\ntrain_df = df[df['is_fraud'] == 0]\ntest_df = df.copy()\ntest_df.head()\ntest_df.count()","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-03-27T14:53:30.754282Z","iopub.execute_input":"2026-03-27T14:53:30.754585Z","iopub.status.idle":"2026-03-27T14:53:47.182023Z","shell.execute_reply.started":"2026-03-27T14:53:30.754561Z","shell.execute_reply":"2026-03-27T14:53:47.181365Z"}},"outputs":[{"execution_count":39,"output_type":"execute_result","data":{"text/plain":"Timestamp             31898238\nFrom Bank             31898238\nsender                31898238\nTo Bank               31898238\nreceiver              31898238\namount_received       31898238\nReceiving Currency    31898238\namount_paid           31898238\nPayment Currency      31898238\nPayment Format        31898238\nis_fraud              31898238\nhour                  31898238\nday                   31898238\namount_diff           31898238\ncurrency_mismatch     31898238\nsame_bank             31898238\ndtype: int64"},"metadata":{}}],"execution_count":39},{"cell_type":"code","source":"test_df['is_night'] = ((test_df['hour'] < 6) | (test_df['hour'] > 22)).astype(int)\n\nuser_features = test_df.groupby('sender').agg({\n    'amount_paid': ['mean', 'std', 'max', 'min', 'count'],\n    'receiver': 'nunique',\n    'same_bank': 'mean',\n    'currency_mismatch': 'mean',\n    'is_night': 'mean'\n})\n\nuser_features.columns = ['_'.join(col) for col in user_features.columns]\nuser_features = user_features.reset_index()\n\n\n\nfraud_labels = df.groupby('sender')['is_fraud'].mean().reset_index()\nuser_features = user_features.merge(fraud_labels, on='sender')\nuser_features['fraud_label'] = (user_features['is_fraud'] > 0).astype(int)\n\n# fraud_count = df.groupby('sender')['is_fraud'].sum().reset_index()\n# user_features = user_features.merge(fraud_count, on='sender')\n\nuser_features.head()","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-03-27T14:53:47.182992Z","iopub.execute_input":"2026-03-27T14:53:47.183311Z","iopub.status.idle":"2026-03-27T14:54:22.726415Z","shell.execute_reply.started":"2026-03-27T14:53:47.183282Z","shell.execute_reply":"2026-03-27T14:54:22.725771Z"}},"outputs":[{"execution_count":40,"output_type":"execute_result","data":{"text/plain":"      sender  amount_paid_mean  amount_paid_std  amount_paid_max  \\\n0  100428660      2.954916e+05     8.883985e+06     4.351720e+09   \n1  1004286A8      2.265441e+05     7.287860e+06     2.589881e+09   \n2  1004286F0      2.055173e+06     7.510824e+07     2.041080e+10   \n3  100428738      3.830910e+07     1.985998e+09     5.179703e+11   \n4  100428780      2.067776e+07     4.270859e+08     2.468186e+10   \n\n   amount_paid_min  amount_paid_count  receiver_nunique  same_bank_mean  \\\n0             0.01            1076979             55956             0.0   \n1             0.02             678929             35128             0.0   \n2             0.12             208695             10882             0.0   \n3             0.53              80578              4132             0.0   \n4             1.26              71452              3581             0.0   \n\n   currency_mismatch_mean  is_night_mean  is_fraud  fraud_label  \n0                     0.0       0.297017  0.001415            1  \n1                     0.0       0.297027  0.001407            1  \n2                     0.0       0.296984  0.001342            1  \n3                     0.0       0.293753  0.001241            1  \n4                     0.0       0.299012  0.001595            1  ","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>sender</th>\n      <th>amount_paid_mean</th>\n      <th>amount_paid_std</th>\n      <th>amount_paid_max</th>\n      <th>amount_paid_min</th>\n      <th>amount_paid_count</th>\n      <th>receiver_nunique</th>\n      <th>same_bank_mean</th>\n      <th>currency_mismatch_mean</th>\n      <th>is_night_mean</th>\n      <th>is_fraud</th>\n      <th>fraud_label</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>100428660</td>\n      <td>2.954916e+05</td>\n      <td>8.883985e+06</td>\n      <td>4.351720e+09</td>\n      <td>0.01</td>\n      <td>1076979</td>\n      <td>55956</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.297017</td>\n      <td>0.001415</td>\n      <td>1</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>1004286A8</td>\n      <td>2.265441e+05</td>\n      <td>7.287860e+06</td>\n      <td>2.589881e+09</td>\n      <td>0.02</td>\n      <td>678929</td>\n      <td>35128</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.297027</td>\n      <td>0.001407</td>\n      <td>1</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>1004286F0</td>\n      <td>2.055173e+06</td>\n      <td>7.510824e+07</td>\n      <td>2.041080e+10</td>\n      <td>0.12</td>\n      <td>208695</td>\n      <td>10882</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.296984</td>\n      <td>0.001342</td>\n      <td>1</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>100428738</td>\n      <td>3.830910e+07</td>\n      <td>1.985998e+09</td>\n      <td>5.179703e+11</td>\n      <td>0.53</td>\n      <td>80578</td>\n      <td>4132</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.293753</td>\n      <td>0.001241</td>\n      <td>1</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>100428780</td>\n      <td>2.067776e+07</td>\n      <td>4.270859e+08</td>\n      <td>2.468186e+10</td>\n      <td>1.26</td>\n      <td>71452</td>\n      <td>3581</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.299012</td>\n      <td>0.001595</td>\n      <td>1</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}],"execution_count":40},{"cell_type":"code","source":"X = user_features.drop(columns=[\n    'sender',\n    'is_fraud',      # continuous\n    'fraud_label'    # target\n])\n\n# Replace infs first\nX = X.replace([np.inf, -np.inf], np.nan)\n\n# Fill NaNs (this is the key fix)\nX = X.fillna(0)\n\ny = user_features['fraud_label']\nX = X.loc[:, X.nunique() > 1]","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-03-27T14:54:22.727284Z","iopub.execute_input":"2026-03-27T14:54:22.727552Z","iopub.status.idle":"2026-03-27T14:54:23.537285Z","shell.execute_reply.started":"2026-03-27T14:54:22.727527Z","shell.execute_reply":"2026-03-27T14:54:23.536704Z"}},"outputs":[],"execution_count":41},{"cell_type":"code","source":"from sklearn.preprocessing import MinMaxScaler\n\nscaler = MinMaxScaler()\nX_scaled = scaler.fit_transform(X)\n\n#normalization\n\nX_train = X_scaled[y == 0]\nX_test = X_scaled\ny_test = y","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-03-27T14:54:23.538158Z","iopub.execute_input":"2026-03-27T14:54:23.538426Z","iopub.status.idle":"2026-03-27T14:54:23.838148Z","shell.execute_reply.started":"2026-03-27T14:54:23.538402Z","shell.execute_reply":"2026-03-27T14:54:23.837303Z"}},"outputs":[],"execution_count":42},{"cell_type":"code","source":"import torch\n\nX_train_tensor = torch.tensor(X_train, dtype=torch.float32)\nX_test_tensor = torch.tensor(X_test, dtype=torch.float32)\n\n#convert to pytorch ","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-03-27T14:54:23.839279Z","iopub.execute_input":"2026-03-27T14:54:23.839602Z","iopub.status.idle":"2026-03-27T14:54:23.902870Z","shell.execute_reply.started":"2026-03-27T14:54:23.839576Z","shell.execute_reply":"2026-03-27T14:54:23.902229Z"}},"outputs":[],"execution_count":43},{"cell_type":"code","source":"import torch.nn as nn\n\nclass Autoencoder(nn.Module):\n    def __init__(self, input_dim):\n        super().__init__()\n        self.encoder = nn.Sequential(\n            nn.Linear(input_dim, 32),\n            nn.ReLU(),\n            nn.Linear(32, 16)\n        )\n        self.decoder = nn.Sequential(\n            nn.Linear(16, 32),\n            nn.ReLU(),\n            nn.Linear(32, input_dim)\n        )\n\n    def forward(self, x):\n        return self.decoder(self.encoder(x))\n\nmodel = Autoencoder(input_dim=X_train.shape[1])\noptimizer = torch.optim.Adam(model.parameters(), lr=0.001)\ncriterion = nn.MSELoss()\n\nlosses = []\n\nfor epoch in range(30):\n    optimizer.zero_grad()\n    \n    recon = model(X_train_tensor)\n    loss = criterion(recon, X_train_tensor)\n    \n    loss.backward()\n    optimizer.step()\n    \n    losses.append(loss.item())\n    \n    print(f\"Epoch {epoch+1}, Loss: {loss.item():.6f}\")","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-03-27T14:54:23.903737Z","iopub.execute_input":"2026-03-27T14:54:23.904016Z","iopub.status.idle":"2026-03-27T14:55:06.753256Z","shell.execute_reply.started":"2026-03-27T14:54:23.903984Z","shell.execute_reply":"2026-03-27T14:55:06.752672Z"}},"outputs":[{"name":"stdout","text":"Epoch 1, Loss: 0.102812\nEpoch 2, Loss: 0.100024\nEpoch 3, Loss: 0.097311\nEpoch 4, Loss: 0.094652\nEpoch 5, Loss: 0.092057\nEpoch 6, Loss: 0.089532\nEpoch 7, Loss: 0.087037\nEpoch 8, Loss: 0.084588\nEpoch 9, Loss: 0.082180\nEpoch 10, Loss: 0.079806\nEpoch 11, Loss: 0.077458\nEpoch 12, Loss: 0.075133\nEpoch 13, Loss: 0.072828\nEpoch 14, Loss: 0.070549\nEpoch 15, Loss: 0.068311\nEpoch 16, Loss: 0.066130\nEpoch 17, Loss: 0.063965\nEpoch 18, Loss: 0.061817\nEpoch 19, Loss: 0.059674\nEpoch 20, Loss: 0.057553\nEpoch 21, Loss: 0.055444\nEpoch 22, Loss: 0.053345\nEpoch 23, Loss: 0.051255\nEpoch 24, Loss: 0.049177\nEpoch 25, Loss: 0.047112\nEpoch 26, Loss: 0.045064\nEpoch 27, Loss: 0.043037\nEpoch 28, Loss: 0.041037\nEpoch 29, Loss: 0.039072\nEpoch 30, Loss: 0.037151\n","output_type":"stream"}],"execution_count":44},{"cell_type":"code","source":"\nnp.isnan(X_scaled).sum()\nnp.isinf(X_scaled).sum()","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-03-27T14:55:06.755249Z","iopub.execute_input":"2026-03-27T14:55:06.755568Z","iopub.status.idle":"2026-03-27T14:55:06.805306Z","shell.execute_reply.started":"2026-03-27T14:55:06.755543Z","shell.execute_reply":"2026-03-27T14:55:06.804770Z"}},"outputs":[{"execution_count":45,"output_type":"execute_result","data":{"text/plain":"np.int64(0)"},"metadata":{}}],"execution_count":45},{"cell_type":"code","source":"with torch.no_grad():\n    recon = model(X_test_tensor)\n    errors = torch.mean((X_test_tensor - recon)**2, dim=1).numpy()\n\nthreshold = np.percentile(errors[y_test == 0], 95)","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-03-27T14:55:06.806022Z","iopub.execute_input":"2026-03-27T14:55:06.806228Z","iopub.status.idle":"2026-03-27T14:55:07.536304Z","shell.execute_reply.started":"2026-03-27T14:55:06.806192Z","shell.execute_reply":"2026-03-27T14:55:07.535675Z"}},"outputs":[],"execution_count":46},{"cell_type":"code","source":"# predictions\n\ny_pred = (errors > threshold).astype(int)","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-03-27T14:55:07.537211Z","iopub.execute_input":"2026-03-27T14:55:07.537434Z","iopub.status.idle":"2026-03-27T14:55:07.542895Z","shell.execute_reply.started":"2026-03-27T14:55:07.537412Z","shell.execute_reply":"2026-03-27T14:55:07.542165Z"}},"outputs":[],"execution_count":47},{"cell_type":"code","source":"# evaluate the model\nfrom sklearn.metrics import classification_report\n\nprint(classification_report(y_test, y_pred))","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-03-27T14:55:07.543828Z","iopub.execute_input":"2026-03-27T14:55:07.544501Z","iopub.status.idle":"2026-03-27T14:55:08.038502Z","shell.execute_reply.started":"2026-03-27T14:55:07.544440Z","shell.execute_reply":"2026-03-27T14:55:08.037647Z"}},"outputs":[{"name":"stdout","text":"              precision    recall  f1-score   support\n\n           0       0.99      0.99      0.99   1990855\n           1       0.00      0.00      0.00     22772\n\n    accuracy                           0.98   2013627\n   macro avg       0.50      0.50      0.50   2013627\nweighted avg       0.98      0.98      0.98   2013627\n\n","output_type":"stream"}],"execution_count":48},{"cell_type":"code","source":"# extra hybrid features\nrule_score = (\n    (user_features['amount_paid_max'] > 100000).astype(int) +\n    (user_features['receiver_nunique'] > 10).astype(int) +\n    (user_features['currency_mismatch_mean'] > 0.5).astype(int)\n)","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-03-27T15:05:51.427685Z","iopub.execute_input":"2026-03-27T15:05:51.428284Z","iopub.status.idle":"2026-03-27T15:05:51.447272Z","shell.execute_reply.started":"2026-03-27T15:05:51.428247Z","shell.execute_reply":"2026-03-27T15:05:51.446605Z"}},"outputs":[],"execution_count":54},{"cell_type":"code","source":"final_score = 0.7 * errors + 0.3 * rule_score","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-03-27T15:05:46.599729Z","iopub.execute_input":"2026-03-27T15:05:46.600315Z","iopub.status.idle":"2026-03-27T15:05:46.609630Z","shell.execute_reply.started":"2026-03-27T15:05:46.600267Z","shell.execute_reply":"2026-03-27T15:05:46.608904Z"}},"outputs":[],"execution_count":53}]}
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "220e488c",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2026-03-27T15:09:08.513898Z",
+     "iopub.status.busy": "2026-03-27T15:09:08.513675Z",
+     "iopub.status.idle": "2026-03-27T15:09:10.053261Z",
+     "shell.execute_reply": "2026-03-27T15:09:10.052352Z"
+    },
+    "papermill": {
+     "duration": 1.545878,
+     "end_time": "2026-03-27T15:09:10.055337+00:00",
+     "exception": false,
+     "start_time": "2026-03-27T15:09:08.509459+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Medium_accounts.csv\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Small_Trans.csv\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Large_accounts.csv\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Large_Trans.csv\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Medium_Trans.csv\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Medium_accounts.csv\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Small_Patterns.txt\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Medium_Patterns.txt\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Small_accounts.csv\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Medium_Trans.csv\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Large_Patterns.txt\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Medium_Patterns.txt\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Large_accounts.csv\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Small_accounts.csv\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Large_Patterns.txt\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Large_Trans.csv\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/LI-Small_Patterns.txt\n",
+      "/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Small_Trans.csv\n"
+     ]
+    }
+   ],
+   "source": [
+    "# This Python 3 environment comes with many helpful analytics libraries installed\n",
+    "# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python\n",
+    "# For example, here's several helpful packages to load\n",
+    "\n",
+    "import numpy as np # linear algebra\n",
+    "import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)\n",
+    "\n",
+    "# Input data files are available in the read-only \"../input/\" directory\n",
+    "# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory\n",
+    "\n",
+    "import os\n",
+    "for dirname, _, filenames in os.walk('/kaggle/input'):\n",
+    "    for filename in filenames:\n",
+    "        print(os.path.join(dirname, filename))\n",
+    "\n",
+    "# You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using \"Save & Run All\" \n",
+    "# You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "0f42e7cd",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-27T15:09:10.061917Z",
+     "iopub.status.busy": "2026-03-27T15:09:10.061570Z",
+     "iopub.status.idle": "2026-03-27T15:10:53.895989Z",
+     "shell.execute_reply": "2026-03-27T15:10:53.895161Z"
+    },
+    "papermill": {
+     "duration": 103.839677,
+     "end_time": "2026-03-27T15:10:53.897774+00:00",
+     "exception": false,
+     "start_time": "2026-03-27T15:09:10.058097+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 31898238 entries, 0 to 31898237\n",
+      "Data columns (total 11 columns):\n",
+      " #   Column              Dtype  \n",
+      "---  ------              -----  \n",
+      " 0   Timestamp           object \n",
+      " 1   From Bank           int64  \n",
+      " 2   Account             object \n",
+      " 3   To Bank             int64  \n",
+      " 4   Account.1           object \n",
+      " 5   Amount Received     float64\n",
+      " 6   Receiving Currency  object \n",
+      " 7   Amount Paid         float64\n",
+      " 8   Payment Currency    object \n",
+      " 9   Payment Format      object \n",
+      " 10  Is Laundering       int64  \n",
+      "dtypes: float64(2), int64(3), object(6)\n",
+      "memory usage: 2.6+ GB\n"
+     ]
+    },
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>From Bank</th>\n",
+       "      <th>To Bank</th>\n",
+       "      <th>Amount Received</th>\n",
+       "      <th>Amount Paid</th>\n",
+       "      <th>Is Laundering</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>count</th>\n",
+       "      <td>3.189824e+07</td>\n",
+       "      <td>3.189824e+07</td>\n",
+       "      <td>3.189824e+07</td>\n",
+       "      <td>3.189824e+07</td>\n",
+       "      <td>3.189824e+07</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>mean</th>\n",
+       "      <td>2.944094e+05</td>\n",
+       "      <td>4.093198e+05</td>\n",
+       "      <td>6.431116e+06</td>\n",
+       "      <td>4.417551e+06</td>\n",
+       "      <td>1.104450e-03</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>std</th>\n",
+       "      <td>6.153149e+05</td>\n",
+       "      <td>6.547003e+05</td>\n",
+       "      <td>2.592744e+09</td>\n",
+       "      <td>1.848313e+09</td>\n",
+       "      <td>3.321491e-02</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>min</th>\n",
+       "      <td>0.000000e+00</td>\n",
+       "      <td>0.000000e+00</td>\n",
+       "      <td>1.000000e-06</td>\n",
+       "      <td>1.000000e-06</td>\n",
+       "      <td>0.000000e+00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>25%</th>\n",
+       "      <td>2.954000e+03</td>\n",
+       "      <td>2.749600e+04</td>\n",
+       "      <td>2.078700e+02</td>\n",
+       "      <td>2.092300e+02</td>\n",
+       "      <td>0.000000e+00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>50%</th>\n",
+       "      <td>3.902400e+04</td>\n",
+       "      <td>1.468530e+05</td>\n",
+       "      <td>1.469250e+03</td>\n",
+       "      <td>1.471540e+03</td>\n",
+       "      <td>0.000000e+00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>75%</th>\n",
+       "      <td>2.158840e+05</td>\n",
+       "      <td>2.598930e+05</td>\n",
+       "      <td>1.183530e+04</td>\n",
+       "      <td>1.175781e+04</td>\n",
+       "      <td>0.000000e+00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>max</th>\n",
+       "      <td>3.225455e+06</td>\n",
+       "      <td>3.225455e+06</td>\n",
+       "      <td>8.158609e+12</td>\n",
+       "      <td>8.158609e+12</td>\n",
+       "      <td>1.000000e+00</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "          From Bank       To Bank  Amount Received   Amount Paid  \\\n",
+       "count  3.189824e+07  3.189824e+07     3.189824e+07  3.189824e+07   \n",
+       "mean   2.944094e+05  4.093198e+05     6.431116e+06  4.417551e+06   \n",
+       "std    6.153149e+05  6.547003e+05     2.592744e+09  1.848313e+09   \n",
+       "min    0.000000e+00  0.000000e+00     1.000000e-06  1.000000e-06   \n",
+       "25%    2.954000e+03  2.749600e+04     2.078700e+02  2.092300e+02   \n",
+       "50%    3.902400e+04  1.468530e+05     1.469250e+03  1.471540e+03   \n",
+       "75%    2.158840e+05  2.598930e+05     1.183530e+04  1.175781e+04   \n",
+       "max    3.225455e+06  3.225455e+06     8.158609e+12  8.158609e+12   \n",
+       "\n",
+       "       Is Laundering  \n",
+       "count   3.189824e+07  \n",
+       "mean    1.104450e-03  \n",
+       "std     3.321491e-02  \n",
+       "min     0.000000e+00  \n",
+       "25%     0.000000e+00  \n",
+       "50%     0.000000e+00  \n",
+       "75%     0.000000e+00  \n",
+       "max     1.000000e+00  "
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df= pd.read_csv('/kaggle/input/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml/HI-Medium_Trans.csv')\n",
+    "\n",
+    "df.head()\n",
+    "df.shape\n",
+    "df.columns\n",
+    "df.info()\n",
+    "\n",
+    "df.isnull().sum()\n",
+    "\n",
+    "df.describe()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "eecbf537",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-27T15:10:53.905171Z",
+     "iopub.status.busy": "2026-03-27T15:10:53.904888Z",
+     "iopub.status.idle": "2026-03-27T15:11:05.751030Z",
+     "shell.execute_reply": "2026-03-27T15:11:05.750248Z"
+    },
+    "papermill": {
+     "duration": 11.851963,
+     "end_time": "2026-03-27T15:11:05.752773+00:00",
+     "exception": false,
+     "start_time": "2026-03-27T15:10:53.900810+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Timestamp</th>\n",
+       "      <th>From Bank</th>\n",
+       "      <th>sender</th>\n",
+       "      <th>To Bank</th>\n",
+       "      <th>receiver</th>\n",
+       "      <th>amount_received</th>\n",
+       "      <th>Receiving Currency</th>\n",
+       "      <th>amount_paid</th>\n",
+       "      <th>Payment Currency</th>\n",
+       "      <th>Payment Format</th>\n",
+       "      <th>is_fraud</th>\n",
+       "      <th>hour</th>\n",
+       "      <th>day</th>\n",
+       "      <th>amount_diff</th>\n",
+       "      <th>currency_mismatch</th>\n",
+       "      <th>same_bank</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>2022-09-01 00:17:00</td>\n",
+       "      <td>20</td>\n",
+       "      <td>800104D70</td>\n",
+       "      <td>20</td>\n",
+       "      <td>800104D70</td>\n",
+       "      <td>6794.63</td>\n",
+       "      <td>US Dollar</td>\n",
+       "      <td>6794.63</td>\n",
+       "      <td>US Dollar</td>\n",
+       "      <td>Reinvestment</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2022-09-01 00:02:00</td>\n",
+       "      <td>3196</td>\n",
+       "      <td>800107150</td>\n",
+       "      <td>3196</td>\n",
+       "      <td>800107150</td>\n",
+       "      <td>7739.29</td>\n",
+       "      <td>US Dollar</td>\n",
+       "      <td>7739.29</td>\n",
+       "      <td>US Dollar</td>\n",
+       "      <td>Reinvestment</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>2022-09-01 00:17:00</td>\n",
+       "      <td>1208</td>\n",
+       "      <td>80010E430</td>\n",
+       "      <td>1208</td>\n",
+       "      <td>80010E430</td>\n",
+       "      <td>1880.23</td>\n",
+       "      <td>US Dollar</td>\n",
+       "      <td>1880.23</td>\n",
+       "      <td>US Dollar</td>\n",
+       "      <td>Reinvestment</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>2022-09-01 00:03:00</td>\n",
+       "      <td>1208</td>\n",
+       "      <td>80010E650</td>\n",
+       "      <td>20</td>\n",
+       "      <td>80010E6F0</td>\n",
+       "      <td>73966883.00</td>\n",
+       "      <td>US Dollar</td>\n",
+       "      <td>73966883.00</td>\n",
+       "      <td>US Dollar</td>\n",
+       "      <td>Cheque</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>2022-09-01 00:02:00</td>\n",
+       "      <td>1208</td>\n",
+       "      <td>80010E650</td>\n",
+       "      <td>20</td>\n",
+       "      <td>80010EA30</td>\n",
+       "      <td>45868454.00</td>\n",
+       "      <td>US Dollar</td>\n",
+       "      <td>45868454.00</td>\n",
+       "      <td>US Dollar</td>\n",
+       "      <td>Cheque</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "            Timestamp  From Bank     sender  To Bank   receiver  \\\n",
+       "0 2022-09-01 00:17:00         20  800104D70       20  800104D70   \n",
+       "1 2022-09-01 00:02:00       3196  800107150     3196  800107150   \n",
+       "2 2022-09-01 00:17:00       1208  80010E430     1208  80010E430   \n",
+       "3 2022-09-01 00:03:00       1208  80010E650       20  80010E6F0   \n",
+       "4 2022-09-01 00:02:00       1208  80010E650       20  80010EA30   \n",
+       "\n",
+       "   amount_received Receiving Currency  amount_paid Payment Currency  \\\n",
+       "0          6794.63          US Dollar      6794.63        US Dollar   \n",
+       "1          7739.29          US Dollar      7739.29        US Dollar   \n",
+       "2          1880.23          US Dollar      1880.23        US Dollar   \n",
+       "3      73966883.00          US Dollar  73966883.00        US Dollar   \n",
+       "4      45868454.00          US Dollar  45868454.00        US Dollar   \n",
+       "\n",
+       "  Payment Format  is_fraud  hour  day  amount_diff  currency_mismatch  \\\n",
+       "0   Reinvestment         0     0    1          0.0                  0   \n",
+       "1   Reinvestment         0     0    1          0.0                  0   \n",
+       "2   Reinvestment         0     0    1          0.0                  0   \n",
+       "3         Cheque         0     0    1          0.0                  0   \n",
+       "4         Cheque         0     0    1          0.0                  0   \n",
+       "\n",
+       "   same_bank  \n",
+       "0          1  \n",
+       "1          1  \n",
+       "2          1  \n",
+       "3          0  \n",
+       "4          0  "
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "\n",
+    "\n",
+    "#shorten the dataset and fix the column names\n",
+    "df = df.rename(columns={\n",
+    "    'Account': 'sender',\n",
+    "    'Account.1': 'receiver',\n",
+    "    'Amount Paid': 'amount_paid',\n",
+    "    'Amount Received': 'amount_received',\n",
+    "    'Is Laundering': 'is_fraud'\n",
+    "})\n",
+    "\n",
+    "df['Timestamp'] = pd.to_datetime(df['Timestamp'])\n",
+    "df['hour'] = df['Timestamp'].dt.hour\n",
+    "df['day'] = df['Timestamp'].dt.day\n",
+    "\n",
+    "#diff in amt\n",
+    "df['amount_diff'] = df['amount_paid'] - df['amount_received']\n",
+    "#currency mismatch\n",
+    "df['currency_mismatch'] = (df['Payment Currency'] != df['Receiving Currency']).astype(int)\n",
+    "#same bank\n",
+    "df['same_bank'] = (df['From Bank'] == df['To Bank']).astype(int)\n",
+    "\n",
+    "df.head()\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "0c6ec7f3",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-27T15:11:05.760282Z",
+     "iopub.status.busy": "2026-03-27T15:11:05.760030Z",
+     "iopub.status.idle": "2026-03-27T15:11:22.284917Z",
+     "shell.execute_reply": "2026-03-27T15:11:22.284073Z"
+    },
+    "papermill": {
+     "duration": 16.530388,
+     "end_time": "2026-03-27T15:11:22.286460+00:00",
+     "exception": false,
+     "start_time": "2026-03-27T15:11:05.756072+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "Timestamp             31898238\n",
+       "From Bank             31898238\n",
+       "sender                31898238\n",
+       "To Bank               31898238\n",
+       "receiver              31898238\n",
+       "amount_received       31898238\n",
+       "Receiving Currency    31898238\n",
+       "amount_paid           31898238\n",
+       "Payment Currency      31898238\n",
+       "Payment Format        31898238\n",
+       "is_fraud              31898238\n",
+       "hour                  31898238\n",
+       "day                   31898238\n",
+       "amount_diff           31898238\n",
+       "currency_mismatch     31898238\n",
+       "same_bank             31898238\n",
+       "dtype: int64"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "\n",
+    "train_df = df[df['is_fraud'] == 0]\n",
+    "test_df = df.copy()\n",
+    "test_df.head()\n",
+    "test_df.count()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "5a78c102",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-27T15:11:22.293712Z",
+     "iopub.status.busy": "2026-03-27T15:11:22.293452Z",
+     "iopub.status.idle": "2026-03-27T15:11:59.603895Z",
+     "shell.execute_reply": "2026-03-27T15:11:59.603065Z"
+    },
+    "papermill": {
+     "duration": 37.319689,
+     "end_time": "2026-03-27T15:11:59.609201+00:00",
+     "exception": false,
+     "start_time": "2026-03-27T15:11:22.289512+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>sender</th>\n",
+       "      <th>amount_paid_mean</th>\n",
+       "      <th>amount_paid_std</th>\n",
+       "      <th>amount_paid_max</th>\n",
+       "      <th>amount_paid_min</th>\n",
+       "      <th>amount_paid_count</th>\n",
+       "      <th>receiver_nunique</th>\n",
+       "      <th>same_bank_mean</th>\n",
+       "      <th>currency_mismatch_mean</th>\n",
+       "      <th>is_night_mean</th>\n",
+       "      <th>is_fraud</th>\n",
+       "      <th>fraud_label</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>100428660</td>\n",
+       "      <td>2.954916e+05</td>\n",
+       "      <td>8.883985e+06</td>\n",
+       "      <td>4.351720e+09</td>\n",
+       "      <td>0.01</td>\n",
+       "      <td>1076979</td>\n",
+       "      <td>55956</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.297017</td>\n",
+       "      <td>0.001415</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>1004286A8</td>\n",
+       "      <td>2.265441e+05</td>\n",
+       "      <td>7.287860e+06</td>\n",
+       "      <td>2.589881e+09</td>\n",
+       "      <td>0.02</td>\n",
+       "      <td>678929</td>\n",
+       "      <td>35128</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.297027</td>\n",
+       "      <td>0.001407</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>1004286F0</td>\n",
+       "      <td>2.055173e+06</td>\n",
+       "      <td>7.510824e+07</td>\n",
+       "      <td>2.041080e+10</td>\n",
+       "      <td>0.12</td>\n",
+       "      <td>208695</td>\n",
+       "      <td>10882</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.296984</td>\n",
+       "      <td>0.001342</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>100428738</td>\n",
+       "      <td>3.830910e+07</td>\n",
+       "      <td>1.985998e+09</td>\n",
+       "      <td>5.179703e+11</td>\n",
+       "      <td>0.53</td>\n",
+       "      <td>80578</td>\n",
+       "      <td>4132</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.293753</td>\n",
+       "      <td>0.001241</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>100428780</td>\n",
+       "      <td>2.067776e+07</td>\n",
+       "      <td>4.270859e+08</td>\n",
+       "      <td>2.468186e+10</td>\n",
+       "      <td>1.26</td>\n",
+       "      <td>71452</td>\n",
+       "      <td>3581</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.299012</td>\n",
+       "      <td>0.001595</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "      sender  amount_paid_mean  amount_paid_std  amount_paid_max  \\\n",
+       "0  100428660      2.954916e+05     8.883985e+06     4.351720e+09   \n",
+       "1  1004286A8      2.265441e+05     7.287860e+06     2.589881e+09   \n",
+       "2  1004286F0      2.055173e+06     7.510824e+07     2.041080e+10   \n",
+       "3  100428738      3.830910e+07     1.985998e+09     5.179703e+11   \n",
+       "4  100428780      2.067776e+07     4.270859e+08     2.468186e+10   \n",
+       "\n",
+       "   amount_paid_min  amount_paid_count  receiver_nunique  same_bank_mean  \\\n",
+       "0             0.01            1076979             55956             0.0   \n",
+       "1             0.02             678929             35128             0.0   \n",
+       "2             0.12             208695             10882             0.0   \n",
+       "3             0.53              80578              4132             0.0   \n",
+       "4             1.26              71452              3581             0.0   \n",
+       "\n",
+       "   currency_mismatch_mean  is_night_mean  is_fraud  fraud_label  \n",
+       "0                     0.0       0.297017  0.001415            1  \n",
+       "1                     0.0       0.297027  0.001407            1  \n",
+       "2                     0.0       0.296984  0.001342            1  \n",
+       "3                     0.0       0.293753  0.001241            1  \n",
+       "4                     0.0       0.299012  0.001595            1  "
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "test_df['is_night'] = ((test_df['hour'] < 6) | (test_df['hour'] > 22)).astype(int)\n",
+    "\n",
+    "user_features = test_df.groupby('sender').agg({\n",
+    "    'amount_paid': ['mean', 'std', 'max', 'min', 'count'],\n",
+    "    'receiver': 'nunique',\n",
+    "    'same_bank': 'mean',\n",
+    "    'currency_mismatch': 'mean',\n",
+    "    'is_night': 'mean'\n",
+    "})\n",
+    "\n",
+    "user_features.columns = ['_'.join(col) for col in user_features.columns]\n",
+    "user_features = user_features.reset_index()\n",
+    "\n",
+    "\n",
+    "\n",
+    "fraud_labels = df.groupby('sender')['is_fraud'].mean().reset_index()\n",
+    "user_features = user_features.merge(fraud_labels, on='sender')\n",
+    "user_features['fraud_label'] = (user_features['is_fraud'] > 0).astype(int)\n",
+    "\n",
+    "# fraud_count = df.groupby('sender')['is_fraud'].sum().reset_index()\n",
+    "# user_features = user_features.merge(fraud_count, on='sender')\n",
+    "\n",
+    "user_features.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "82e92c05",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-27T15:11:59.616882Z",
+     "iopub.status.busy": "2026-03-27T15:11:59.616241Z",
+     "iopub.status.idle": "2026-03-27T15:12:00.574330Z",
+     "shell.execute_reply": "2026-03-27T15:12:00.573694Z"
+    },
+    "papermill": {
+     "duration": 0.963829,
+     "end_time": "2026-03-27T15:12:00.576094+00:00",
+     "exception": false,
+     "start_time": "2026-03-27T15:11:59.612265+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "X = user_features.drop(columns=[\n",
+    "    'sender',\n",
+    "    'is_fraud',      # continuous\n",
+    "    'fraud_label'    # target\n",
+    "])\n",
+    "\n",
+    "# Replace infs first\n",
+    "X = X.replace([np.inf, -np.inf], np.nan)\n",
+    "\n",
+    "# Fill NaNs (this is the key fix)\n",
+    "X = X.fillna(0)\n",
+    "\n",
+    "y = user_features['fraud_label']\n",
+    "X = X.loc[:, X.nunique() > 1]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "9e6818f0",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-27T15:12:00.584162Z",
+     "iopub.status.busy": "2026-03-27T15:12:00.583865Z",
+     "iopub.status.idle": "2026-03-27T15:12:03.366503Z",
+     "shell.execute_reply": "2026-03-27T15:12:03.365690Z"
+    },
+    "papermill": {
+     "duration": 2.78904,
+     "end_time": "2026-03-27T15:12:03.368575+00:00",
+     "exception": false,
+     "start_time": "2026-03-27T15:12:00.579535+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "from sklearn.preprocessing import MinMaxScaler\n",
+    "\n",
+    "scaler = MinMaxScaler()\n",
+    "X_scaled = scaler.fit_transform(X)\n",
+    "\n",
+    "#normalization\n",
+    "\n",
+    "X_train = X_scaled[y == 0]\n",
+    "X_test = X_scaled\n",
+    "y_test = y"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "f3507c7a",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-27T15:12:03.376844Z",
+     "iopub.status.busy": "2026-03-27T15:12:03.376201Z",
+     "iopub.status.idle": "2026-03-27T15:12:11.396441Z",
+     "shell.execute_reply": "2026-03-27T15:12:11.395514Z"
+    },
+    "papermill": {
+     "duration": 8.026419,
+     "end_time": "2026-03-27T15:12:11.398477+00:00",
+     "exception": false,
+     "start_time": "2026-03-27T15:12:03.372058+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import torch\n",
+    "\n",
+    "X_train_tensor = torch.tensor(X_train, dtype=torch.float32)\n",
+    "X_test_tensor = torch.tensor(X_test, dtype=torch.float32)\n",
+    "\n",
+    "#convert to pytorch "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "b16bd61e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-27T15:12:11.408058Z",
+     "iopub.status.busy": "2026-03-27T15:12:11.407200Z",
+     "iopub.status.idle": "2026-03-27T15:13:04.570726Z",
+     "shell.execute_reply": "2026-03-27T15:13:04.569753Z"
+    },
+    "papermill": {
+     "duration": 53.169873,
+     "end_time": "2026-03-27T15:13:04.572408+00:00",
+     "exception": false,
+     "start_time": "2026-03-27T15:12:11.402535+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Epoch 1, Loss: 0.104929\n",
+      "Epoch 2, Loss: 0.102268\n",
+      "Epoch 3, Loss: 0.099728\n",
+      "Epoch 4, Loss: 0.097319\n",
+      "Epoch 5, Loss: 0.095036\n",
+      "Epoch 6, Loss: 0.092881\n",
+      "Epoch 7, Loss: 0.090871\n",
+      "Epoch 8, Loss: 0.088949\n",
+      "Epoch 9, Loss: 0.087109\n",
+      "Epoch 10, Loss: 0.085348\n",
+      "Epoch 11, Loss: 0.083659\n",
+      "Epoch 12, Loss: 0.082038\n",
+      "Epoch 13, Loss: 0.080481\n",
+      "Epoch 14, Loss: 0.078982\n",
+      "Epoch 15, Loss: 0.077537\n",
+      "Epoch 16, Loss: 0.076142\n",
+      "Epoch 17, Loss: 0.074792\n",
+      "Epoch 18, Loss: 0.073482\n",
+      "Epoch 19, Loss: 0.072208\n",
+      "Epoch 20, Loss: 0.070966\n",
+      "Epoch 21, Loss: 0.069753\n",
+      "Epoch 22, Loss: 0.068567\n",
+      "Epoch 23, Loss: 0.067404\n",
+      "Epoch 24, Loss: 0.066264\n",
+      "Epoch 25, Loss: 0.065154\n",
+      "Epoch 26, Loss: 0.064071\n",
+      "Epoch 27, Loss: 0.062995\n",
+      "Epoch 28, Loss: 0.061927\n",
+      "Epoch 29, Loss: 0.060886\n",
+      "Epoch 30, Loss: 0.059868\n"
+     ]
+    }
+   ],
+   "source": [
+    "import torch.nn as nn\n",
+    "\n",
+    "class Autoencoder(nn.Module):\n",
+    "    def __init__(self, input_dim):\n",
+    "        super().__init__()\n",
+    "        self.encoder = nn.Sequential(\n",
+    "            nn.Linear(input_dim, 32),\n",
+    "            nn.ReLU(),\n",
+    "            nn.Linear(32, 16)\n",
+    "        )\n",
+    "        self.decoder = nn.Sequential(\n",
+    "            nn.Linear(16, 32),\n",
+    "            nn.ReLU(),\n",
+    "            nn.Linear(32, input_dim)\n",
+    "        )\n",
+    "\n",
+    "    def forward(self, x):\n",
+    "        return self.decoder(self.encoder(x))\n",
+    "\n",
+    "model = Autoencoder(input_dim=X_train.shape[1])\n",
+    "optimizer = torch.optim.Adam(model.parameters(), lr=0.001)\n",
+    "criterion = nn.MSELoss()\n",
+    "\n",
+    "losses = []\n",
+    "\n",
+    "for epoch in range(30):\n",
+    "    optimizer.zero_grad()\n",
+    "    \n",
+    "    recon = model(X_train_tensor)\n",
+    "    loss = criterion(recon, X_train_tensor)\n",
+    "    \n",
+    "    loss.backward()\n",
+    "    optimizer.step()\n",
+    "    \n",
+    "    losses.append(loss.item())\n",
+    "    \n",
+    "    print(f\"Epoch {epoch+1}, Loss: {loss.item():.6f}\")\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "9e0a6a40",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-27T15:13:04.582687Z",
+     "iopub.status.busy": "2026-03-27T15:13:04.582053Z",
+     "iopub.status.idle": "2026-03-27T15:13:04.640233Z",
+     "shell.execute_reply": "2026-03-27T15:13:04.639423Z"
+    },
+    "papermill": {
+     "duration": 0.064706,
+     "end_time": "2026-03-27T15:13:04.641766+00:00",
+     "exception": false,
+     "start_time": "2026-03-27T15:13:04.577060+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "np.int64(0)"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "\n",
+    "np.isnan(X_scaled).sum()\n",
+    "np.isinf(X_scaled).sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "79f0adbb",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-27T15:13:04.651571Z",
+     "iopub.status.busy": "2026-03-27T15:13:04.651269Z",
+     "iopub.status.idle": "2026-03-27T15:13:05.432720Z",
+     "shell.execute_reply": "2026-03-27T15:13:05.431803Z"
+    },
+    "papermill": {
+     "duration": 0.788689,
+     "end_time": "2026-03-27T15:13:05.434879+00:00",
+     "exception": false,
+     "start_time": "2026-03-27T15:13:04.646190+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "with torch.no_grad():\n",
+    "    recon = model(X_test_tensor)\n",
+    "    errors = torch.mean((X_test_tensor - recon)**2, dim=1).numpy()\n",
+    "\n",
+    "threshold = np.percentile(errors[y_test == 0], 95)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "0d9944f8",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-27T15:13:05.445025Z",
+     "iopub.status.busy": "2026-03-27T15:13:05.444574Z",
+     "iopub.status.idle": "2026-03-27T15:13:05.450886Z",
+     "shell.execute_reply": "2026-03-27T15:13:05.450104Z"
+    },
+    "papermill": {
+     "duration": 0.013227,
+     "end_time": "2026-03-27T15:13:05.452406+00:00",
+     "exception": false,
+     "start_time": "2026-03-27T15:13:05.439179+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# predictions\n",
+    "\n",
+    "y_pred = (errors > threshold).astype(int)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "6ec54954",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-27T15:13:05.462764Z",
+     "iopub.status.busy": "2026-03-27T15:13:05.462016Z",
+     "iopub.status.idle": "2026-03-27T15:13:05.974190Z",
+     "shell.execute_reply": "2026-03-27T15:13:05.973151Z"
+    },
+    "papermill": {
+     "duration": 0.519265,
+     "end_time": "2026-03-27T15:13:05.976019+00:00",
+     "exception": false,
+     "start_time": "2026-03-27T15:13:05.456754+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "              precision    recall  f1-score   support\n",
+      "\n",
+      "           0       0.99      0.97      0.98   1990855\n",
+      "           1       0.00      0.00      0.00     22772\n",
+      "\n",
+      "    accuracy                           0.96   2013627\n",
+      "   macro avg       0.49      0.49      0.49   2013627\n",
+      "weighted avg       0.98      0.96      0.97   2013627\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "# evaluate the model\n",
+    "from sklearn.metrics import classification_report\n",
+    "\n",
+    "print(classification_report(y_test, y_pred))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "865cc3a3",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-27T15:13:05.987974Z",
+     "iopub.status.busy": "2026-03-27T15:13:05.987516Z",
+     "iopub.status.idle": "2026-03-27T15:13:06.009276Z",
+     "shell.execute_reply": "2026-03-27T15:13:06.008400Z"
+    },
+    "papermill": {
+     "duration": 0.02986,
+     "end_time": "2026-03-27T15:13:06.011148+00:00",
+     "exception": false,
+     "start_time": "2026-03-27T15:13:05.981288+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# extra hybrid features\n",
+    "rule_score = (\n",
+    "    (user_features['amount_paid_max'] > 100000).astype(int) +\n",
+    "    (user_features['receiver_nunique'] > 10).astype(int) +\n",
+    "    (user_features['currency_mismatch_mean'] > 0.5).astype(int)\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "d4d18717",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-27T15:13:06.022200Z",
+     "iopub.status.busy": "2026-03-27T15:13:06.021617Z",
+     "iopub.status.idle": "2026-03-27T15:13:06.035253Z",
+     "shell.execute_reply": "2026-03-27T15:13:06.034652Z"
+    },
+    "papermill": {
+     "duration": 0.021221,
+     "end_time": "2026-03-27T15:13:06.037092+00:00",
+     "exception": false,
+     "start_time": "2026-03-27T15:13:06.015871+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "final_score = 0.7 * errors + 0.3 * rule_score"
+   ]
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "nvidiaTeslaT4",
+   "dataSources": [
+    {
+     "databundleVersionId": 12977599,
+     "datasetId": 2948142,
+     "sourceId": 12411329,
+     "sourceType": "datasetVersion"
+    }
+   ],
+   "dockerImageVersionId": 31329,
+   "isGpuEnabled": true,
+   "isInternetEnabled": false,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.12"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 243.812273,
+   "end_time": "2026-03-27T15:13:08.959475+00:00",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2026-03-27T15:09:05.147202+00:00",
+   "version": "2.7.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
