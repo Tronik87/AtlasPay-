@@ -1,6 +1,7 @@
 import random
 from src.models.bank import Bank
 from src.models.channel import Channel
+from src.utils.time_model import estimate_time
 
 
 currencies = ["USD", "EUR", "INR", "GBP"]
@@ -10,6 +11,17 @@ countries = [
     "USA", "UK", "India", "Germany", "France",
     "UAE", "Singapore", "Japan", "Australia"
 ]
+region_map = {
+    "USA": "NA",
+    "UK": "EU",
+    "Germany": "EU",
+    "France": "EU",
+    "India": "IN",
+    "UAE": "ME",
+    "Singapore": "ASIA",
+    "Japan": "ASIA",
+    "Australia": "ASIA"
+}
 
 
 # -------------------------------
@@ -21,8 +33,10 @@ def generate_banks(n=50):
     for i in range(n):
         name = f"Bank{i}"
         country = random.choice(countries)
+        
 
         bank = Bank(name, country)
+        bank.region = region_map.get(country, "OTHER")
 
         # random nostro balances
         for _ in range(3):
@@ -44,39 +58,51 @@ def generate_channels(banks, density=0.05):
     channels = []
     n = len(banks)
 
-    # Backbone (ensures connectivity)
+    # -------------------------------
+    # 1. BACKBONE
+    # -------------------------------
     for i in range(n - 1):
         b1 = banks[i]
         b2 = banks[i + 1]
 
         currency = random.choice(currencies)
-        rail = random.choice(rails)
-        time = random.uniform(0.5, 2)
+        rail = "SWIFT"
+        time = estimate_time(b1, b2, rail)
 
-        channels.append(
-            Channel(b1.name, b2.name, currency, rail, time)
-        )
+        channels.append(Channel(b1.name, b2.name, currency, rail, time))
+        channels.append(Channel(b2.name, b1.name, currency, rail, time))
 
-        channels.append(
-            Channel(b2.name, b1.name, currency, rail, time)
-        )
-
-    # Random edges
+    # -------------------------------
+    # 2. REGION-BASED CONNECTIONS
+    # -------------------------------
     for bank in banks:
         for other in banks:
             if bank.name == other.name:
                 continue
 
-            if random.random() < density:
-                currency = random.choice(currencies)
-                rail = random.choice(rails)
-                time = random.uniform(0.5, 3)
+            # SAME REGION
+            if bank.region == other.region:
+                if random.random() < 0.3:
+                    rail = "SEPA" if bank.region == "EU" else "RTGS"
+                    currency = random.choice(currencies)
+                    time = estimate_time(bank, other, rail)
 
-                channels.append(
-                    Channel(bank.name, other.name, currency, rail, time)
-                )
+                    channels.append(
+                        Channel(bank.name, other.name, currency, rail, time)
+                    )
 
-    return channels  # ✅ FIXED
+            # CROSS REGION
+            else:
+                if random.random() < 0.05:
+                    currency = random.choice(currencies)
+                    rail = "SWIFT"
+                    time = estimate_time(bank, other, rail)
+
+                    channels.append(
+                        Channel(bank.name, other.name, currency, rail, time)
+                    )
+
+    return channels
 
 
 # -------------------------------
