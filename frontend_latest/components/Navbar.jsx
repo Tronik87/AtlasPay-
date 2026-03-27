@@ -33,32 +33,12 @@ export default function Navbar() {
         AtlasPay
       </div>
 
-      {/* LINKS */}
-      <div style={{ display: "flex", gap: "30px" }}>
-        {["Dashboard", "Simulate", "Routes", "Risk"].map((item, i) => (
-          <Link
-            key={i}
-            href={item === "Dashboard" ? "/" : `/${item.toLowerCase()}`}
-            style={{
-              position: "relative",
-              color: "rgba(230,183,169,0.8)",
-              textDecoration: "none",
-              fontSize: "14px",
-              letterSpacing: "0.5px",
-              transition: "0.3s"
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.color = "#f5d0c5";
-              e.target.style.textShadow = "0 0 10px rgba(230,183,169,0.4)";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.color = "rgba(230,183,169,0.8)";
-              e.target.style.textShadow = "none";
-            }}
-          >
-            {item}
-          </Link>
-        ))}
+      <div style={{ display: "flex", gap: "25px" }}>
+        <Link href="/">Dashboard</Link>
+        <Link href="/simulate">Simulate</Link>
+        <Link href="/route">Routes</Link>
+        <Link href="/crypto">Crypto</Link>
+        <Link href="/risk">Risk</Link>
       </div>
     </div>
   );
