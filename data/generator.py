@@ -47,11 +47,17 @@ def generate_channels(banks, density=0.03):
     channels = []
     n = len(banks)
 
+<<<<<<< HEAD
     # 1. Backbone: Ring connection ensures at least one path
     for i in range(n):
+=======
+    # Backbone (ensures connectivity)
+    for i in range(n - 1):
+>>>>>>> parent of 60f34b3 (Added regions, time v/s cost based routing.)
         b1 = banks[i]
         b2 = banks[(i + 1) % n] # modulo for ring
 
+<<<<<<< HEAD
         for currency in ["USD", "EUR"]: # backbone has multi-currency
             rail = random.choice(rails)
             time = random.uniform(0.1, 1.5)
@@ -81,6 +87,36 @@ def generate_channels(banks, density=0.03):
                 channels.append(Channel(b2.name, b1.name, currency, rail, time))
 
     return channels
+=======
+        currency = random.choice(currencies)
+        rail = random.choice(rails)
+        time = random.uniform(0.5, 2)
+
+        channels.append(
+            Channel(b1.name, b2.name, currency, rail, time)
+        )
+
+        channels.append(
+            Channel(b2.name, b1.name, currency, rail, time)
+        )
+
+    # Random edges
+    for bank in banks:
+        for other in banks:
+            if bank.name == other.name:
+                continue
+
+            if random.random() < density:
+                currency = random.choice(currencies)
+                rail = random.choice(rails)
+                time = random.uniform(0.5, 3)
+
+                channels.append(
+                    Channel(bank.name, other.name, currency, rail, time)
+                )
+
+    return channels  # ✅ FIXED
+>>>>>>> parent of 60f34b3 (Added regions, time v/s cost based routing.)
 
 
 # -------------------------------

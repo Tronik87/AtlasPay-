@@ -1,4 +1,5 @@
 from src.utils.fees import calculate_fee
+from src.utils.fees import calculate_fee
 import networkx as nx
 
 def calculate_edge_cost(data, amount):
@@ -8,10 +9,12 @@ def calculate_edge_cost(data, amount):
 
     fx_loss = amount * (1 - fx_rate)
     total = fee + fx_loss + time
+    total = fee + fx_loss + time
 
     return total, fee, fx_loss, time
 
 
+def find_best_route(G, source, target, amount):
 def find_best_route(G, source, target, amount):
 
     def weight(u, v, d):
@@ -19,11 +22,15 @@ def find_best_route(G, source, target, amount):
             return float('inf')
 
         total, _, _, _ = calculate_edge_cost(d, amount)
+        total, _, _, _ = calculate_edge_cost(d, amount)
         return total
 
     try:
         path = nx.shortest_path(G, source, target, weight=weight)
     except nx.NetworkXNoPath:
+        return {
+            "error": "No valid route found"
+        }
         return {
             "error": "No valid route found"
         }
@@ -38,9 +45,12 @@ def find_best_route(G, source, target, amount):
     for i in range(len(path) - 1):
         data = G[path[i]][path[i+1]]
         total, fee, fx, time = calculate_edge_cost(data, amount)
+        data = G[path[i]][path[i+1]]
+        total, fee, fx, time = calculate_edge_cost(data, amount)
 
         edges.append({
             "from": path[i],
+            "to": path[i+1],
             "to": path[i+1],
             "fee": fee,
             "fx_loss": fx,

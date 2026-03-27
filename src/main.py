@@ -16,6 +16,7 @@ def main():
         f"Generated {n_banks} banks and {len(channels)} channels in {time.time() - start:.2f}s"
     )
 
+<<<<<<< HEAD
     start = time.time()
     bank_spreads = generate_bank_spreads(banks)
 
@@ -45,6 +46,8 @@ def main():
             print("FAILED to find any route even with retry.")
             return
 
+=======
+>>>>>>> parent of 60f34b3 (Added regions, time v/s cost based routing.)
     print("\nBest Route:")
     for bank, currency in path:
         print(f"{bank} ({currency})")
@@ -52,7 +55,11 @@ def main():
     print(f"\nTotal Cost: {total:.2f}")
     print(f"Fees: {fee:.2f}")
     print(f"FX Loss: {fx:.2f}")
+<<<<<<< HEAD
     print(f"Time Cost: {time_cost:.2f}")
+=======
+    print(f"Time Cost: {time:.2f}")
+>>>>>>> parent of 60f34b3 (Added regions, time v/s cost based routing.)
 
 
 if __name__ == "__main__":
