@@ -50,7 +50,21 @@ class Transaction(BaseModel):
 # -------------------------------
 # Endpoints
 # -------------------------------
-
+COUNTRY_COORDS = {
+    "USA": (-100, 40),
+    "UK": (0, 52),
+    "Germany": (10, 51),
+    "France": (2, 46),
+    "Switzerland": (8, 47),
+    "Japan": (138, 36),
+    "China": (104, 35),
+    "India": (78, 22),
+    "Singapore": (103, 1),
+    "Australia": (133, -25),
+    "Iran": (53, 32),
+    "Russia": (100, 60),
+    "North Korea": (127, 40),
+}
 @app.get("/banks")
 def get_banks():
     return [
@@ -62,6 +76,36 @@ def get_banks():
         for bank in banks
     ]
 
+@app.get("/graph")
+def get_graph():
+
+    nodes = []
+    edges = []
+
+    for bank in banks:
+        lat, lon = COUNTRY_COORDS.get(bank.country, (0, 0))
+
+        for currency in bank.supported_currencies:
+            nodes.append({
+                "id": (bank.name, currency),
+                "bank": bank.name,
+                "currency": currency,
+                "country": bank.country,
+                "lat": lat,
+                "lon": lon
+            })
+
+    for u, v, data in G.edges(data=True):
+        if not data.get("sanctioned") and data.get("liquidity", 0) < 500000:
+            continue
+
+        edges.append({
+            "source": u,
+            "target": v,
+            "sanctioned": data.get("sanctioned", False)
+        })
+
+    return {"nodes": nodes, "edges": edges}
 
 @app.post("/simulate")
 def simulate(tx: Transaction):
