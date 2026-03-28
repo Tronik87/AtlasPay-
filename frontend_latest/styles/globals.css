@@ -609,7 +609,6 @@ select {
   transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
 }
 
-<<<<<<< HEAD
 .button:hover {
   transform: scale(1.05);
   box-shadow: 0 0 25px rgba(34,197,94,0.7);
@@ -701,7 +700,6 @@ select {
     border-color: rgba(230,183,169,0.12);
   }
 }
-=======
 .field-control:focus {
   border-color: rgba(53, 200, 255, 0.34);
   box-shadow: 0 0 0 4px rgba(53, 200, 255, 0.08);
@@ -1426,4 +1424,3 @@ select {
     padding: 14px 16px;
   }
 }
->>>>>>> 6171ba9810199ccef3695e58d5702a3253794d93
