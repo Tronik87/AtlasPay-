@@ -1697,3 +1697,45 @@ select {
   background: rgba(230,183,169,0.2);
   box-shadow: 0 0 20px rgba(230,183,169,0.3);
 }
+.pipeline-node-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 14px;
+  min-width: 180px;
+  backdrop-filter: blur(12px);
+  color: white;
+}
+
+.node-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.node-body {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.node-item {
+  margin-bottom: 4px;
+}
+
+/* EDGES */
+
+.react-flow__edge-path {
+  stroke: #60a5fa;
+  stroke-width: 2;
+}
+
+.react-flow__edge.animated path {
+  stroke-dasharray: 6;
+  animation: dash 1.2s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
