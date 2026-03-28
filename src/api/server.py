@@ -29,7 +29,7 @@ app.add_middleware(
 # -------------------------------
 # Build graph ONCE
 # -------------------------------
-banks, channels = create_large_sample(15)
+banks, channels = create_large_sample(25)
 bank_spreads = generate_bank_spreads(banks)
 G = build_graph(banks, channels, bank_spreads)
 
@@ -114,13 +114,16 @@ def simulate(tx: Transaction):
         "routes_by_mode": results
     }
 
-    return response
+    
 
 
-    if result["routes"]:
-        best = result["routes"][0]
+    # pick balanced mode for logging (most realistic)
+    balanced = results.get("balanced", {})
 
-        route_str = " → ".join([f"{b[0]}" for b in best["path"]])
+    if balanced and balanced.get("routes"):
+        best = balanced["routes"][0]
+
+        route_str = " → ".join([b[0] for b in best["path"]])
         cost = best["summary"]["total_cost"]
         time = best["summary"]["total_time"]
 
@@ -132,8 +135,8 @@ def simulate(tx: Transaction):
             (route_str, cost, time, risk)
         )
         conn.commit()
-      
-        return result
+   
+    return response
 
 
 @app.get("/transactions")
