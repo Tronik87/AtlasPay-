@@ -1,7 +1,23 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import GlobalBackground from "../components/GlobalBackground";
 import Navbar from "../components/Navbar";
 import RouteVisualizer from "../components/RouteVisualizer";
+
+const OUTPUT_PANEL_STYLE = {
+  minHeight: "560px",
+  display: "flex",
+  flexDirection: "column",
+};
+
+const VISUALIZER_WRAPPER_STYLE = {
+  marginTop: "28px",
+  flex: 1,
+  minHeight: "420px",
+  width: "100%",
+  overflow: "hidden",
+  borderRadius: "12px",
+  position: "relative",
+};
 
 export default function Simulate() {
   const [result, setResult] = useState(null);
@@ -11,19 +27,15 @@ export default function Simulate() {
   const [amount, setAmount] = useState(1000);
   const [currency, setCurrency] = useState("USD");
 
-  // -------------------------------
-  // Fetch banks
-  // -------------------------------
   useEffect(() => {
-    fetch("http://localhost:8000/banks")
+    fetch("http://127.0.0.1:8000/banks")
       .then((res) => res.json())
       .then((data) => setBanks(data))
       .catch((err) => console.error("Error fetching banks:", err));
   }, []);
 
-  // -------------------------------
-  // Simulate transaction
-  // -------------------------------
+  const routeCount = useMemo(() => result?.total_routes ?? 0, [result]);
+
   const handleSimulate = async () => {
     if (!sender || !receiver) {
       alert("Select both banks");
@@ -36,12 +48,7 @@ export default function Simulate() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          sender,
-          receiver,
-          amount,
-          currency,
-        }),
+        body: JSON.stringify({ sender, receiver, amount, currency }),
       });
 
       const data = await res.json();
@@ -64,7 +71,6 @@ export default function Simulate() {
       <Navbar />
 
       <main className="app-main page-content-layer">
-        {/* ---------------- HERO ---------------- */}
         <section className="hero">
           <div className="hero-copy">
             <span className="eyebrow">Payments Studio</span>
@@ -88,18 +94,18 @@ export default function Simulate() {
           </div>
         </section>
 
-        {/* ---------------- MAIN GRID ---------------- */}
         <section className="grid-two">
-          {/* -------- INPUT PANEL -------- */}
           <div className="glass-panel interactive-card">
             <div className="panel-content">
               <span className="eyebrow">Input</span>
-              <h2 className="section-title" style={{ marginTop: "18px", fontSize: "1.6rem" }}>
+              <h2
+                className="section-title"
+                style={{ marginTop: "18px", fontSize: "1.6rem" }}
+              >
                 Transaction briefing
               </h2>
 
               <div className="form-grid" style={{ marginTop: "26px" }}>
-                {/* Sender */}
                 <select
                   className="glass-select"
                   value={sender}
@@ -113,7 +119,6 @@ export default function Simulate() {
                   ))}
                 </select>
 
-                {/* Receiver */}
                 <select
                   className="glass-select"
                   value={receiver}
@@ -127,15 +132,14 @@ export default function Simulate() {
                   ))}
                 </select>
 
-                {/* Amount */}
                 <input
                   className="glass-select"
                   type="number"
+                  min="0"
                   value={amount}
                   onChange={(e) => setAmount(Number(e.target.value))}
                 />
 
-                {/* Currency */}
                 <select
                   className="glass-select"
                   value={currency}
@@ -156,34 +160,31 @@ export default function Simulate() {
             </div>
           </div>
 
-          {/* -------- OUTPUT PANEL -------- */}
-          <div className="glass-panel interactive-card">
-            <div className="panel-content">
+          <div className="glass-panel interactive-card" style={OUTPUT_PANEL_STYLE}>
+            <div className="panel-content" style={{ display: "flex", flexDirection: "column", flex: 1 }}>
               <span className="eyebrow">Output</span>
-              <h2 className="section-title" style={{ marginTop: "18px", fontSize: "1.6rem" }}>
+              <h2
+                className="section-title"
+                style={{ marginTop: "18px", fontSize: "1.6rem" }}
+              >
                 Live routing preview
               </h2>
 
-              <div style={{ marginTop: "28px" }}>
-                {result ? (
-                  <>
-                    {/* Debug info */}
-                    <div style={{ marginBottom: "10px", opacity: 0.7 }}>
-                      Total Routes: {result.total_routes}
-                    </div>
-
-                    <RouteVisualizer
-                      bestRoute={result.best_route}
-                      routes={result.routes}
-                    />
-                  </>
-                ) : (
-                  <div className="empty-state">
-                    <h3>Awaiting simulation</h3>
-                    <p>Enter payment details and execute routing.</p>
+              {result ? (
+                <>
+                  <div style={{ marginTop: "16px", marginBottom: "6px", opacity: 0.7 }}>
+                    Total Routes: {routeCount}
                   </div>
-                )}
-              </div>
+                  <div style={VISUALIZER_WRAPPER_STYLE}>
+                    <RouteVisualizer bestRoute={result.best_route} routes={result.routes} />
+                  </div>
+                </>
+              ) : (
+                <div className="empty-state" style={{ marginTop: "28px" }}>
+                  <h3>Awaiting simulation</h3>
+                  <p>Enter payment details and execute routing.</p>
+                </div>
+              )}
             </div>
           </div>
         </section>
