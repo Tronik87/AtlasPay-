@@ -27,14 +27,15 @@ export default function Simulate() {
   const [amount, setAmount] = useState(1000);
   const [currency, setCurrency] = useState("USD");
 
+  // ✅ NEW: mode state
+  const [mode, setMode] = useState("balanced");
+
   useEffect(() => {
     fetch("http://127.0.0.1:8000/banks")
       .then((res) => res.json())
       .then((data) => setBanks(data))
       .catch((err) => console.error("Error fetching banks:", err));
   }, []);
-
-  const routeCount = useMemo(() => result?.total_routes ?? 0, [result]);
 
   const handleSimulate = async () => {
     if (!sender || !receiver) {
@@ -65,6 +66,17 @@ export default function Simulate() {
     }
   };
 
+  // ✅ Extract correct data from new backend
+  const currentRoutes = useMemo(() => {
+    return result?.routes_by_mode?.[mode]?.routes ?? [];
+  }, [result, mode]);
+
+  const bestRoute = useMemo(() => {
+    return currentRoutes.find((r) => r.is_best);
+  }, [currentRoutes]);
+
+  const routeCount = currentRoutes.length;
+
   return (
     <div className="app-shell">
       <GlobalBackground />
@@ -85,7 +97,7 @@ export default function Simulate() {
             <div className="panel-content">
               <div className="metric-label">Simulation Mode</div>
               <div className="metric-value" style={{ fontSize: "2rem" }}>
-                Manual
+                {mode.toUpperCase()}
               </div>
               <p className="metric-foot">
                 Execute deterministic routing with full transparency.
@@ -95,6 +107,7 @@ export default function Simulate() {
         </section>
 
         <section className="grid-two">
+          {/* ---------------- INPUT PANEL ---------------- */}
           <div className="glass-panel interactive-card">
             <div className="panel-content">
               <span className="eyebrow">Input</span>
@@ -150,6 +163,17 @@ export default function Simulate() {
                   <option value="GBP">GBP</option>
                   <option value="INR">INR</option>
                 </select>
+
+                {/* ✅ NEW: MODE SELECTOR */}
+                <select
+                  className="glass-select"
+                  value={mode}
+                  onChange={(e) => setMode(e.target.value)}
+                >
+                  <option value="cheapest">Cheapest</option>
+                  <option value="fastest">Fastest</option>
+                  <option value="balanced">Balanced</option>
+                </select>
               </div>
 
               <div className="subtle-divider" style={{ margin: "24px 0" }} />
@@ -160,8 +184,12 @@ export default function Simulate() {
             </div>
           </div>
 
+          {/* ---------------- OUTPUT PANEL ---------------- */}
           <div className="glass-panel interactive-card" style={OUTPUT_PANEL_STYLE}>
-            <div className="panel-content" style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+            <div
+              className="panel-content"
+              style={{ display: "flex", flexDirection: "column", flex: 1 }}
+            >
               <span className="eyebrow">Output</span>
               <h2
                 className="section-title"
@@ -172,11 +200,25 @@ export default function Simulate() {
 
               {result ? (
                 <>
-                  <div style={{ marginTop: "16px", marginBottom: "6px", opacity: 0.7 }}>
+                  <div
+                    style={{
+                      marginTop: "16px",
+                      marginBottom: "6px",
+                      opacity: 0.7,
+                    }}
+                  >
                     Total Routes: {routeCount}
                   </div>
+
+                  <div style={{ opacity: 0.6, marginBottom: "8px" }}>
+                    Mode: {mode.toUpperCase()}
+                  </div>
+
                   <div style={VISUALIZER_WRAPPER_STYLE}>
-                    <RouteVisualizer bestRoute={result.best_route} routes={result.routes} />
+                    <RouteVisualizer
+                      bestRoute={bestRoute}
+                      routes={currentRoutes}
+                    />
                   </div>
                 </>
               ) : (
