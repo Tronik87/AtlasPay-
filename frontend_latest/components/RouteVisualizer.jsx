@@ -9,10 +9,13 @@ export default function RouteVisualizer({ bestRoute, routes }) {
   let edges = [];
 
   routes.forEach((route, rIndex) => {
+    // -------------------------------
+    // NODES
+    // -------------------------------
     route.path.forEach((step, index) => {
       const id = step[0] + "-" + step[1];
 
-      if (!nodes.find(n => n.id === id)) {
+      if (!nodes.find((n) => n.id === id)) {
         nodes.push({
           id,
           data: { label: `${step[0]} (${step[1]})` },
@@ -21,42 +24,72 @@ export default function RouteVisualizer({ bestRoute, routes }) {
             background: "rgba(255,255,255,0.05)",
             border: "1px solid rgba(230,183,169,0.3)",
             color: "#e6b7a9",
-            backdropFilter: "blur(10px)"
-          }
+            backdropFilter: "blur(10px)",
+          },
         });
       }
     });
 
-    route.path.slice(0, -1).forEach((_, index) => {
-      const source = route.path[index][0] + "-" + route.path[index][1];
-      const target = route.path[index + 1][0] + "-" + route.path[index + 1][1];
+    // -------------------------------
+    // EDGES (IMPORTANT: use route.edges)
+    // -------------------------------
+    route.edges.forEach((edgeData, index) => {
+      const source = edgeData.from[0] + "-" + edgeData.from[1];
+      const target = edgeData.to[0] + "-" + edgeData.to[1];
+
+      const isSanctioned = edgeData.sanctioned;
 
       edges.push({
-  id: `r${rIndex}-e${index}`,
-  source,
-  target,
-  animated: route.is_best,
-  style: {
-    stroke: route.is_best ? "url(#gradient)" : "rgba(255,255,255,0.2)",
-    strokeWidth: route.is_best ? 4 : 1.5,
-    opacity: route.is_best ? 1 : 0.4
-  }
-});
+        id: `r${rIndex}-e${index}`,
+        source,
+        target,
+        animated: route.is_best && !isSanctioned,
+
+        style: {
+          // 🔴 SANCTIONED EDGE
+          stroke: isSanctioned
+            ? "#ef4444"
+            : route.is_best
+            ? "url(#gradient)"
+            : "rgba(255,255,255,0.2)",
+
+          strokeWidth: isSanctioned
+            ? 3
+            : route.is_best
+            ? 4
+            : 1.5,
+
+          opacity: isSanctioned
+            ? 0.9
+            : route.is_best
+            ? 1
+            : 0.4,
+
+          strokeDasharray: isSanctioned ? "6 4" : "0",
+        },
+      });
     });
   });
 
   return (
-  <div className="route-container" style={{ width: "100%", height: "400px", position: "relative" }}>
-    <svg width="0" height="0">
-      <defs>
-        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#e6b7a9" />
-          <stop offset="100%" stopColor="#8b5cf6" />
-        </linearGradient>
-      </defs>
-    </svg>
+    <div
+      style={{
+        width: "100%",
+        height: "400px",
+        position: "relative",
+      }}
+    >
+      {/* Gradient for best route */}
+      <svg width="0" height="0">
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#e6b7a9" />
+            <stop offset="100%" stopColor="#8b5cf6" />
+          </linearGradient>
+        </defs>
+      </svg>
 
-    <ReactFlow nodes={nodes} edges={edges} fitView />
-  </div>
-);
+      <ReactFlow nodes={nodes} edges={edges} fitView />
+    </div>
+  );
 }

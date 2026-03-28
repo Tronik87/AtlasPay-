@@ -57,9 +57,13 @@ def count_fx_transitions(path):
 # MULTIGRAPH → SIMPLE GRAPH
 # -------------------------------
 def convert_to_simple_graph(G_multi, amount, mode):
+    
     G_simple = nx.DiGraph()
 
     for u, v, data in G_multi.edges(data=True):
+        if data.get("sanctioned", False):
+            
+            total *= 1000 #heavy penalty to effectively remove from consideration
 
         if data.get('liquidity', 0) < amount * 0.5:
             continue
@@ -161,16 +165,19 @@ def find_best_route(G, source, target, amount, mode="balanced", k=5):
             )
 
             edges.append({
-                "from": path[i],
-                "to": path[i + 1],
-                "rail": data.get("rail", "FX"),
-                "type": data.get("type", "transfer"),
-                "fee": round(fee, 2),
-                "fx_loss": round(fx, 2),
-                "time": round(time, 2),
-                "fx_rate": data['fx_rate'],
-                "amount_after": round(new_amount, 2)
-            })
+        "from": path[i],
+        "to": path[i + 1],
+        "rail": data.get("rail", "FX"),
+        "type": data.get("type", "transfer"),
+        "fee": round(fee, 2),
+        "fx_loss": round(fx, 2),
+        "time": round(time, 2),
+        "fx_rate": data['fx_rate'],
+        "amount_after": round(new_amount, 2),
+
+        # ✅ ADD THIS
+        "sanctioned": data.get("sanctioned", False)
+    })
 
             total_cost += total
             total_fee += fee

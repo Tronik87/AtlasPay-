@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import CursorGlow from "../components/CursorGlow";
 import "../styles/globals.css";
 
-const routeOrder = ["/", "/simulate", "/route", "/crypto", "/risk", "/logs"];
+const routeOrder = ["/", "/simulate", "/route", "/risk", "/logs"];
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
