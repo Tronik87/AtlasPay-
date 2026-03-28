@@ -4,12 +4,13 @@ from src.models.channel import Channel
 from src.utils.time_model import estimate_time
 
 
-currencies = ["USD", "EUR", "INR", "GBP"]
+currencies = ["USD", "EUR", "INR", "GBP", "SGD", "CNY", "CAD"]
 rails = ["SWIFT", "SEPA", "RTGS"]
 
 countries = [
     "USA", "UK", "India", "Germany", "France",
-    "UAE", "Singapore", "Japan", "Australia"
+    "UAE", "Singapore", "Japan", "Australia",
+    "China", "Canada"
 ]
 
 region_map = {
@@ -21,7 +22,9 @@ region_map = {
     "UAE": "ME",
     "Singapore": "ASIA",
     "Japan": "ASIA",
-    "Australia": "ASIA"
+    "Australia": "ASIA",
+    "China": "ASIA",
+    "Canada": "NA"
 }
 
 

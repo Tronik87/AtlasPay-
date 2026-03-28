@@ -32,7 +32,7 @@ export default function CryptoPage() {
   // -------------------------------
   // FETCH FROM BACKEND
   // -------------------------------
- /* useEffect(() => {
+  useEffect(() => {
     async function fetchRoutes() {
       try {
         const res = await fetch("http://localhost:8000/route", {
@@ -69,7 +69,7 @@ export default function CryptoPage() {
     }
 
     fetchRoutes();
-  }, [form]);*/
+  }, [form]);
 
   const handleChange = useCallback((event) => {
     const { name, value } = event.target;

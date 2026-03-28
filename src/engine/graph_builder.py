@@ -39,7 +39,7 @@ def build_graph(banks, channels, bank_spreads):
         )
 
     # FX edges
-    currencies = ["USD", "EUR", "INR", "GBP"]
+    currencies = ["USD", "EUR", "INR", "GBP", "SGD", "CNY", "CAD"]
 
     for bank in banks:
         for c1 in currencies:
