@@ -211,3 +211,14 @@ def find_best_route(G, source, target, amount, mode="balanced", k=5):
         "total_routes": len(results),
         "routes": results
     }
+def find_routes_multi_mode(G, source, target, amount, k=3):
+
+    modes = ["cheapest", "fastest", "balanced"]
+    results = {}
+
+    for mode in modes:
+        results[mode] = find_best_route(
+            G, source, target, amount, mode=mode, k=k
+        )
+
+    return results

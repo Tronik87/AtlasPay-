@@ -3,12 +3,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
 
 from data.generator import create_large_sample
 from src.engine.graph_builder import build_graph
 from src.utils.fx_profiles import generate_bank_spreads
-from src.engine.router import find_best_route
+from src.engine.router import find_routes_multi_mode
 
 from src.db.db import cursor, conn
 import json
@@ -25,6 +24,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # -------------------------------
 # Build graph ONCE
@@ -44,12 +44,13 @@ class Transaction(BaseModel):
     sender: str
     receiver: str
     amount: float
-    currency: str  # source currency
+    currency: str
 
 
 # -------------------------------
 # Endpoints
 # -------------------------------
+
 @app.get("/banks")
 def get_banks():
     return [
@@ -75,31 +76,45 @@ def simulate(tx: Transaction):
     receiver_bank = bank_map[tx.receiver]
 
     # -------------------------------
-    # Choose currencies properly
+    # Validate currency
     # -------------------------------
     source_currency = tx.currency
 
     if source_currency not in sender_bank.supported_currencies:
         return {"error": "Sender does not support this currency"}
 
-    # pick a realistic target currency
+    # target currency = receiver’s primary
     target_currency = receiver_bank.primary_currency
 
     source = (sender_bank.name, source_currency)
     target = (receiver_bank.name, target_currency)
 
     # -------------------------------
-    # Run routing
+    # Run MULTI-MODE routing
     # -------------------------------
-    result = find_best_route(
+    results = find_routes_multi_mode(
         G,
         source,
         target,
         tx.amount,
-        mode="balanced",
-        k=5
+        k=3   # 3 routes per mode (can increase later)
     )
 
+    # -------------------------------
+    # Optional: metadata (nice for frontend)
+    # -------------------------------
+    response = {
+        "transaction": {
+            "sender": tx.sender,
+            "receiver": tx.receiver,
+            "amount": tx.amount,
+            "source_currency": source_currency,
+            "target_currency": target_currency
+        },
+        "routes_by_mode": results
+    }
+
+    return response
 
 
     if result["routes"]:
