@@ -1,51 +1,62 @@
-function formatNode(node) {
-  if (Array.isArray(node)) {
-    return node.filter(Boolean).map(formatNodeLabel).join(" • ");
+import React from "react";
+import ReactFlow from "reactflow";
+import "reactflow/dist/style.css";
+
+export default function RouteVisualizer({ bestRoute, routes }) {
+  if (!routes || routes.length === 0) return <p>No route</p>;
+
+  let nodes = [];
+  let edges = [];
+
+  routes.forEach((route, rIndex) => {
+    route.path.forEach((step, index) => {
+      const id = step[0] + "-" + step[1];
+
+      if (!nodes.find(n => n.id === id)) {
+        nodes.push({
+          id,
+          data: { label: `${step[0]} (${step[1]})` },
+          position: { x: index * 220, y: rIndex * 120 },
+          style: {
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(230,183,169,0.3)",
+            color: "#e6b7a9",
+            backdropFilter: "blur(10px)"
+          }
+        });
+      }
+    });
+
+    route.path.slice(0, -1).forEach((_, index) => {
+      const source = route.path[index][0] + "-" + route.path[index][1];
+      const target = route.path[index + 1][0] + "-" + route.path[index + 1][1];
+
+      edges.push({
+  id: `r${rIndex}-e${index}`,
+  source,
+  target,
+  animated: route.is_best,
+  style: {
+    stroke: route.is_best ? "url(#gradient)" : "rgba(255,255,255,0.2)",
+    strokeWidth: route.is_best ? 4 : 1.5,
+    opacity: route.is_best ? 1 : 0.4
   }
+});
+    });
+  });
 
-  return formatNodeLabel(node);
-}
-
-function formatNodeLabel(value) {
-  return String(value).replace(/([a-z])([A-Z])/g, "$1 $2");
-}
-
-export default function RouteVisualizer({ data }) {
   return (
-    <div className="fade-slide">
-      <div className="route-path">
-        {data.path.map((node, index) => (
-          <div key={`${formatNode(node)}-${index}`} style={{ display: "contents" }}>
-            <div className="route-node">{formatNode(node)}</div>
-            {index < data.path.length - 1 ? (
-              <span className="route-arrow" aria-hidden="true">
-                →
-              </span>
-            ) : null}
-          </div>
-        ))}
-      </div>
+  <div className="route-container" style={{ width: "100%", height: "400px", position: "relative" }}>
+    <svg width="0" height="0">
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#e6b7a9" />
+          <stop offset="100%" stopColor="#8b5cf6" />
+        </linearGradient>
+      </defs>
+    </svg>
 
-      <div className="subtle-divider" style={{ margin: "24px 0" }} />
-
-      <div className="stats-list">
-        <div className="stat-tile">
-          <span className="stat-tile-label">Total Cost</span>
-          <strong className="stat-tile-value glow">$ {data.summary.total_cost}</strong>
-        </div>
-        <div className="stat-tile">
-          <span className="stat-tile-label">Fees</span>
-          <strong className="stat-tile-value">{data.summary.total_fee}</strong>
-        </div>
-        <div className="stat-tile">
-          <span className="stat-tile-label">FX Loss</span>
-          <strong className="stat-tile-value">{data.summary.total_fx_loss}</strong>
-        </div>
-        <div className="stat-tile">
-          <span className="stat-tile-label">Settlement Time</span>
-          <strong className="stat-tile-value">{data.summary.total_time} s</strong>
-        </div>
-      </div>
-    </div>
-  );
+    <ReactFlow nodes={nodes} edges={edges} fitView />
+  </div>
+);
 }

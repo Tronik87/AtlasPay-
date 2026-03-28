@@ -81,101 +81,6 @@ export default function Home() {
   }, []);
 
   return (
-<<<<<<< HEAD
-    <div style={{ position: "relative", height: "100vh" }}>
-      
-      {/* BACKGROUND VIDEO */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          position: "absolute",
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          filter: "brightness(0.25) contrast(1.1)"
-        }}
-      >
-        <source src="/videos/bg.mp4" type="video/mp4" />
-      </video>
-
-      {/* MATTE OVERLAY */}
-      <div style={{
-        position: "absolute",
-        width: "100%",
-        height: "100%",
-        background: "rgba(0,0,0,0.6)",
-        backdropFilter: "blur(8px)"
-      }} />
-
-      {/* CONTENT */}
-      <div style={{
-        position: "relative",
-        zIndex: 2,
-        height: "100%",
-        display: "flex",
-        flexDirection: "column"
-      }}>
-        <Navbar />
-
-        <div style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          textAlign: "center"
-        }}>
-
-          {/* HERO CIRCLE */}
-          <div className="hero-circle" ref={circleRef}>
-            <div className="circle-inner" />
-
-            <h1 className="hero-text" ref={textRef}>
-              AtlasPay
-            </h1>
-          </div>
-
-          {/* SUBTEXT */}
-          <p
-            ref={subRef}
-            style={{
-              marginTop: "20px",
-              color: "rgba(255,255,255,0.6)",
-              maxWidth: "500px"
-            }}
-          >
-            Intelligent cross-border routing with real-time cost optimization and anomaly detection
-          </p>
-
-          {/* BUTTON */}
-          <button style={{
-            marginTop: "30px",
-            padding: "12px 28px",
-            borderRadius: "999px",
-            border: "1px solid rgba(230,183,169,0.4)",
-            background: "rgba(230,183,169,0.08)",
-            color: "#e6b7a9",
-            cursor: "pointer",
-            transition: "0.3s"
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.background = "rgba(230,183,169,0.2)";
-            e.target.style.boxShadow = "0 0 20px rgba(230,183,169,0.3)";
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.background = "rgba(230,183,169,0.08)";
-            e.target.style.boxShadow = "none";
-          }}
-          >
-            Enter System
-          </button>
-
-        </div>
-      </div>
-=======
     <div className="app-shell">
       <DashboardBackground />
       <Navbar />
@@ -284,7 +189,6 @@ export default function Home() {
           </div>
         </section>
       </main>
->>>>>>> 6171ba9810199ccef3695e58d5702a3253794d93
     </div>
   );
 }
