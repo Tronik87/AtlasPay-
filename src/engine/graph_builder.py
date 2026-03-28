@@ -4,28 +4,38 @@ from src.utils.liquidity import generate_liquidity
 
 
 def build_graph(banks, channels, bank_spreads):
-    G = nx.DiGraph()
+    G = nx.MultiDiGraph()
 
     rail_cost = {
-        "SWIFT": 10,
-        "SEPA": 2,
-        "RTGS": 5
-    }
+    "SWIFT": 10,
+    "SEPA": 2,
+    "RTGS": 5
+}
+    rail_options=["SWIFT", "SEPA", "RTGS"]
 
     # Transfer edges
     for ch in channels:
-        liquidity = generate_liquidity()
-        fee = rail_cost.get(ch.rail, 8)
+        for rail in rail_options:
+
+        # Skip unrealistic rails
+            if rail == "SEPA" and ch.currency != "EUR":
+                continue
+
+            if rail == "RTGS" and ch.currency != "INR":
+                continue
+
+            liquidity = generate_liquidity()
+            fee = rail_cost.get(rail, 8)
 
         G.add_edge(
             (ch.from_bank, ch.currency),
             (ch.to_bank, ch.currency),
             fee=fee,
             fx_rate=1.0,
-            time=ch.time,
+            time=ch.time * (1.5 if rail == "SWIFT" else 1),
             liquidity=liquidity,
             type="transfer",
-            rail=ch.rail
+            rail=rail
         )
 
     # FX edges

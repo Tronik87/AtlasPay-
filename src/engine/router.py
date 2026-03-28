@@ -35,56 +35,122 @@ def count_fx_transitions(path):
     return count
 
 
-def find_best_route(G, source, target, amount, mode="balanced"):
+# -------------------------------
+# Convert MultiGraph → DiGraph
+# -------------------------------
+def convert_to_simple_graph(G_multi, amount, mode):
+    G_simple = nx.DiGraph()
 
-    def weight(u, v, d):
-        if d['liquidity'] < amount:
-            return float('inf')
+    for u, v, data in G_multi.edges(data=True):
 
-        total, _, _, _ = calculate_edge_cost(d, amount, mode)
-        return total
+        if data.get('liquidity', 0) < amount:
+            continue
+
+        total, _, _, _ = calculate_edge_cost(data, amount, mode)
+
+        if G_simple.has_edge(u, v):
+            if total < G_simple[u][v]['weight']:
+                G_simple[u][v]['weight'] = total
+        else:
+            G_simple.add_edge(u, v, weight=total)
+
+    return G_simple
+
+
+# -------------------------------
+# MULTI ROUTE FUNCTION
+# -------------------------------
+def find_multiple_routes(G, source, target, amount, mode="balanced", k=5):
+    print("DEBUG: starting route search")
+
+    G_simple = convert_to_simple_graph(G, amount, mode)
 
     try:
-        path = nx.shortest_path(G, source, target, weight=weight)
+        paths = nx.shortest_simple_paths(G_simple, source, target, weight='weight')
     except nx.NetworkXNoPath:
-        return {"error": "No valid route found"}
+        return {"error": "No routes found"}
 
-    if count_fx_transitions(path) > 2:
-        return {"error": "Route rejected: too many FX conversions"}
+    results = []
+    count = 0
 
-    total_cost = 0
-    total_fee = 0
-    total_fx = 0
-    total_time = 0
+    for path in paths:
+        print("DEBUG PATH:", path)
 
-    edges = []
+        if count >= k:
+            break
 
-    for i in range(len(path) - 1):
-        data = G[path[i]][path[i + 1]]
-        total, fee, fx, time = calculate_edge_cost(data, amount, mode)
+        if count_fx_transitions(path) > 100:
+            continue
 
-        edges.append({
-            "from": path[i],
-            "to": path[i + 1],
-            "type": data.get("type", "transfer"),
-            "fee": fee,
-            "fx_loss": fx,
-            "time": time,
-            "fx_rate": data['fx_rate']
+        total_cost = 0
+        total_fee = 0
+        total_fx = 0
+        total_time = 0
+
+        edges = []
+        valid = True
+
+        for i in range(len(path) - 1):
+
+            edges_between = G.get_edge_data(path[i], path[i + 1])
+
+            best_edge = None
+            best_cost = float('inf')
+
+            for key in edges_between:
+                d = edges_between[key]
+
+                if d.get('liquidity', 0) < amount * 0.5:
+                    continue
+
+                total, _, _, _ = calculate_edge_cost(d, amount, mode)
+
+                if total < best_cost:
+                    best_cost = total
+                    best_edge = d
+
+            if best_edge is None:
+                valid = False
+                break
+
+            data = best_edge
+            total, fee, fx, time = calculate_edge_cost(data, amount, mode)
+
+            edges.append({
+                "from": path[i],
+                "to": path[i + 1],
+                "rail": data.get("rail", "FX"),
+                "type": data.get("type", "transfer"),
+                "fee": fee,
+                "fx_loss": fx,
+                "time": time,
+                "fx_rate": data['fx_rate']
+            })
+
+            total_cost += total
+            total_fee += fee
+            total_fx += fx
+            total_time += time
+
+        if not valid:
+            continue
+
+        results.append({
+            "path": path,
+            "edges": edges,
+            "summary": {
+                "total_cost": total_cost,
+                "total_fee": total_fee,
+                "total_fx_loss": total_fx,
+                "total_time": total_time
+            }
         })
 
-        total_cost += total
-        total_fee += fee
-        total_fx += fx
-        total_time += time
+        count += 1
+
+    print("DEBUG: total valid routes =", len(results))
 
     return {
-        "path": path,
-        "edges": edges,
-        "summary": {
-            "total_cost": total_cost,
-            "total_fee": total_fee,
-            "total_fx_loss": total_fx,
-            "total_time": total_time
-        }
+        "routes": results
     }
+
