@@ -10,6 +10,8 @@ from src.engine.graph_builder import build_graph
 from src.utils.fx_profiles import generate_bank_spreads
 from src.engine.router import find_best_route
 
+from src.db.db import cursor, conn
+import json
 
 # -------------------------------
 # App setup
@@ -98,7 +100,52 @@ def simulate(tx: Transaction):
         k=5
     )
 
-    # -------------------------------
-    # Return result
-    # -------------------------------
-    return result
+
+
+    if result["routes"]:
+        best = result["routes"][0]
+
+        route_str = " → ".join([f"{b[0]}" for b in best["path"]])
+        cost = best["summary"]["total_cost"]
+        time = best["summary"]["total_time"]
+
+        # simple risk logic
+        risk = "HIGH" if cost > 20 else "LOW"
+
+        cursor.execute(
+            "INSERT INTO transactions (route, total_cost, total_time, risk) VALUES (?, ?, ?, ?)",
+            (route_str, cost, time, risk)
+        )
+        conn.commit()
+      
+        return result
+
+
+@app.get("/transactions")
+def get_transactions():
+    rows = cursor.execute("SELECT * FROM transactions ORDER BY id DESC").fetchall()
+
+    return [
+        {
+            "id": row[0],
+            "route": row[1],
+            "cost": row[2],
+            "time": row[3],
+            "risk": row[4],
+            "timestamp": row[5]
+        }
+        for row in rows
+    ]
+    
+@app.get("/metrics")
+def get_metrics():
+    rows = cursor.execute("SELECT total_cost, risk FROM transactions").fetchall()
+
+    avg_cost = sum(r[0] for r in rows) / len(rows) if rows else 0
+    high_risk = sum(1 for r in rows if r[1] == "HIGH")
+
+    return {
+        "avg_cost": avg_cost,
+        "high_risk": high_risk,
+        "total": len(rows)
+    }
