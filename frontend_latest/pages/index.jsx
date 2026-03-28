@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import Navbar from "../components/Navbar";
 import DashboardBackground from "../components/DashboardBackground";
 import TransactionCard from "../components/TransactionCard";
+import Link from "next/link";
 
 const volumeSeries = [
   { label: "Mon", value: 42 },
@@ -80,100 +81,105 @@ export default function Home() {
     };
   }, []);
 
-  return (
-    <div style={{ position: "relative", height: "100vh" }}>
-      
-      {/* BACKGROUND VIDEO */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          position: "absolute",
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          filter: "brightness(0.25) contrast(1.1)"
-        }}
-      >
-        <source src="/videos/bg.mp4" type="video/mp4" />
-      </video>
+ return (
+  <div className="app-shell">
+    <video
+      autoPlay
+      loop
+      muted
+      playsInline
+      className="bg-video"
+    >
+      <source src="/videos/bg.mp4" type="video/mp4" />
+    </video>
 
-      {/* MATTE OVERLAY */}
-      <div style={{
-        position: "absolute",
-        width: "100%",
-        height: "100%",
-        background: "rgba(0,0,0,0.6)",
-        backdropFilter: "blur(8px)"
-      }} />
+    <div className="bg-overlay" />
 
-      {/* CONTENT */}
-      <div style={{
-        position: "relative",
-        zIndex: 2,
-        height: "100%",
-        display: "flex",
-        flexDirection: "column"
-      }}>
-        <Navbar />
+    <div className="page-content-layer">
+      <Navbar />
 
-        <div style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          textAlign: "center"
-        }}>
+      <main className="app-main">
 
-          {/* HERO CIRCLE */}
+        {/* HERO */}
+        <section className="hero-center">
           <div className="hero-circle" ref={circleRef}>
             <div className="circle-inner" />
-
             <h1 className="hero-text" ref={textRef}>
               AtlasPay
             </h1>
           </div>
 
-          {/* SUBTEXT */}
-          <p
-            ref={subRef}
-            style={{
-              marginTop: "20px",
-              color: "rgba(255,255,255,0.6)",
-              maxWidth: "500px"
-            }}
-          >
-            Intelligent cross-border routing with real-time cost optimization and anomaly detection
+          <p ref={subRef} className="hero-sub">
+            Intelligent cross-border routing with real-time optimization
           </p>
 
-          {/* BUTTON */}
-          <button style={{
-            marginTop: "30px",
-            padding: "12px 28px",
-            borderRadius: "999px",
-            border: "1px solid rgba(230,183,169,0.4)",
-            background: "rgba(230,183,169,0.08)",
-            color: "#e6b7a9",
-            cursor: "pointer",
-            transition: "0.3s"
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.background = "rgba(230,183,169,0.2)";
-            e.target.style.boxShadow = "0 0 20px rgba(230,183,169,0.3)";
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.background = "rgba(230,183,169,0.08)";
-            e.target.style.boxShadow = "none";
-          }}
-          >
+          <button className="primary-btn">
             Enter System
           </button>
+        </section>
 
-        </div>
-      </div>
+        {/* METRICS */}
+        <section className="metric-grid">
+          <div className="metric-card interactive-card">
+            <p className="metric-label">Transactions Routed</p>
+            <div className="metric-value">128</div>
+            <p className="metric-foot">Across all corridors</p>
+          </div>
+
+          <div className="metric-card interactive-card">
+            <p className="metric-label">Avg Cost Efficiency</p>
+            <div className="metric-value">$11.42</div>
+            <p className="metric-foot">Optimized vs baseline</p>
+          </div>
+
+          <div className="metric-card interactive-card">
+            <p className="metric-label">FX Conversions</p>
+            <div className="metric-value">36</div>
+            <p className="metric-foot">Across routed paths</p>
+          </div>
+
+          <div className="metric-card interactive-card">
+            <p className="metric-label">Anomaly Alerts</p>
+            <div className="metric-value" style={{ color: "#fb7185" }}>
+              3
+            </div>
+            <p className="metric-foot">Flagged by system</p>
+          </div>
+        </section>
+
+        {/* QUICK ACTIONS */}
+        <section className="grid-two">
+          <div className="glass-panel interactive-card">
+            <div className="panel-content">
+              <span className="eyebrow">Routing</span>
+              <h2 className="section-title">Simulate a transfer</h2>
+              <p className="section-copy">
+                Run real-time routing across corridors and rails.
+              </p>
+
+              <Link href="/simulate" className="button-primary">
+                Go to Simulation
+              </Link>
+            </div>
+          </div>
+
+          <div className="glass-panel interactive-card">
+            <div className="panel-content">
+              <span className="eyebrow">Analytics</span>
+              <h2 className="section-title">View transaction logs</h2>
+              <p className="section-copy">
+                Analyze cost, risk, and routing decisions.
+              </p>
+
+              <Link href="/logs" className="button-primary">
+                View Logs
+              </Link>
+            </div>
+          </div>
+        </section>
+
+      </main>
     </div>
-  );
+  </div>
+);
 }

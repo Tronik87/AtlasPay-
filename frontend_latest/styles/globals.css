@@ -1648,3 +1648,52 @@ select {
     padding: 20px;
   }
 }
+
+
+.bg-video {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.25) contrast(1.1);
+  z-index: 0;
+}
+
+.bg-overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  z-index: 1;
+}
+
+.hero-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 60px;
+  text-align: center;
+}
+
+.hero-sub {
+  margin-top: 20px;
+  color: rgba(255,255,255,0.6);
+  max-width: 500px;
+}
+
+.primary-btn {
+  margin-top: 30px;
+  padding: 12px 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(230,183,169,0.4);
+  background: rgba(230,183,169,0.08);
+  color: #e6b7a9;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.primary-btn:hover {
+  background: rgba(230,183,169,0.2);
+  box-shadow: 0 0 20px rgba(230,183,169,0.3);
+}

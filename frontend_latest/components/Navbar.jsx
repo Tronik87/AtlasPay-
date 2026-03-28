@@ -8,7 +8,7 @@ const navItems = [
   { href: "/route", label: "Routes" },
   { href: "/crypto", label: "Crypto" },
   { href: "/risk", label: "Risk" },
-  { href: "/logs", label: "Analytics" },{ href: "/simulate", label: "Simulate" },
+  { href: "/logs", label: "Analytics" },
 ];
 
 function Navbar() {
