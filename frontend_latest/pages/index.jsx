@@ -81,114 +81,99 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="app-shell">
-      <DashboardBackground />
-      <Navbar />
+    <div style={{ position: "relative", height: "100vh" }}>
+      
+      {/* BACKGROUND VIDEO */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        style={{
+          position: "absolute",
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          filter: "brightness(0.25) contrast(1.1)"
+        }}
+      >
+        <source src="/videos/bg.mp4" type="video/mp4" />
+      </video>
 
-      <main className="app-main page-content-layer">
-        <section className="hero">
-          <div className="hero-copy">
-            <span className="eyebrow">Treasury Control Center</span>
-            <h1>Premium payment orchestration for high-trust global settlement.</h1>
-            <p>
-              AtlasPay brings routing, crypto simulation, and operational visibility
-              into one disciplined interface built for speed, clarity, and confidence.
-            </p>
+      {/* MATTE OVERLAY */}
+      <div style={{
+        position: "absolute",
+        width: "100%",
+        height: "100%",
+        background: "rgba(0,0,0,0.6)",
+        backdropFilter: "blur(8px)"
+      }} />
+
+      {/* CONTENT */}
+      <div style={{
+        position: "relative",
+        zIndex: 2,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column"
+      }}>
+        <Navbar />
+
+        <div style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          textAlign: "center"
+        }}>
+
+          {/* HERO CIRCLE */}
+          <div className="hero-circle" ref={circleRef}>
+            <div className="circle-inner" />
+
+            <h1 className="hero-text" ref={textRef}>
+              AtlasPay
+            </h1>
           </div>
 
-          <div className="hero-aside glass-panel">
-            <div className="panel-content">
-              <div className="metric-label">System Health</div>
-              <div className="metric-value" style={{ fontSize: "2.2rem" }}>
-                99.98%
-              </div>
-              <p className="metric-foot">
-                Treasury rails stable across payments, routing, and risk surfaces.
-              </p>
-            </div>
-          </div>
-        </section>
+          {/* SUBTEXT */}
+          <p
+            ref={subRef}
+            style={{
+              marginTop: "20px",
+              color: "rgba(255,255,255,0.6)",
+              maxWidth: "500px"
+            }}
+          >
+            Intelligent cross-border routing with real-time cost optimization and anomaly detection
+          </p>
 
-        <section className="metric-grid">
-          <TransactionCard
-            label="Total Volume"
-            value="$2.84M"
-            footnote="124 routed transactions under active treasury supervision."
-          />
-          <TransactionCard
-            label="Average Fee"
-            value="$8.2"
-            footnote="Blended network and conversion cost across the current routing mix."
-            glow="violet"
-          />
-          <TransactionCard
-            label="Fastest Route"
-            value="A → C → D"
-            footnote="Primary corridor currently holding the shortest simulated settlement window."
-          />
-        </section>
+          {/* BUTTON */}
+          <button style={{
+            marginTop: "30px",
+            padding: "12px 28px",
+            borderRadius: "999px",
+            border: "1px solid rgba(230,183,169,0.4)",
+            background: "rgba(230,183,169,0.08)",
+            color: "#e6b7a9",
+            cursor: "pointer",
+            transition: "0.3s"
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = "rgba(230,183,169,0.2)";
+            e.target.style.boxShadow = "0 0 20px rgba(230,183,169,0.3)";
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = "rgba(230,183,169,0.08)";
+            e.target.style.boxShadow = "none";
+          }}
+          >
+            Enter System
+          </button>
 
-        <section className="grid-two" style={{ marginTop: "24px" }}>
-          <div className="glass-panel interactive-card">
-            <div className="panel-content">
-              <span className="eyebrow">Flow Overview</span>
-              <h2 className="section-title" style={{ marginTop: "18px", fontSize: "1.65rem" }}>
-                Weekly volume composition
-              </h2>
-              <p className="section-copy">
-                A static, derived overview of recent payment momentum based on the
-                current dashboard snapshot.
-              </p>
-
-              <div className="tiny-chart" style={{ marginTop: "28px" }}>
-                {volumeSeries.map((item, index) => (
-                  <div key={item.label} style={{ flex: 1 }}>
-                    <div
-                      className={`tiny-bar${index % 2 === 0 ? "" : " alt"}`}
-                      style={{ height: `${item.value * 1.6}px` }}
-                    />
-                    <div className="tiny-caption">{item.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="glass-panel interactive-card">
-            <div className="panel-content">
-              <span className="eyebrow">Operational Brief</span>
-              <h2 className="section-title" style={{ marginTop: "18px", fontSize: "1.65rem" }}>
-                Today&apos;s control signals
-              </h2>
-              <p className="section-copy">
-                Built to surface the signals operators care about first: risk, speed,
-                and cost quality.
-              </p>
-
-              <div style={{ marginTop: "28px", display: "grid", gap: "14px" }}>
-                <div className="option-card">
-                  <div className="metric-label">Risk Alerts</div>
-                  <div className="metric-value" style={{ color: "#fb7185", fontSize: "2rem" }}>
-                    3
-                  </div>
-                  <p className="metric-foot">
-                    Elevated corridors remain contained within expected operating bands.
-                  </p>
-                </div>
-                <div className="option-card">
-                  <div className="metric-label">Liquidity Coverage</div>
-                  <div className="metric-value" style={{ fontSize: "2rem" }}>
-                    86%
-                  </div>
-                  <p className="metric-foot">
-                    Global liquidity posture supports stable payment execution across core rails.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
+        </div>
+      </div>
     </div>
   );
 }

@@ -609,6 +609,97 @@ select {
   transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
 }
 
+.button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(34,197,94,0.7);
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+
+/* HERO CIRCLE */
+.hero-circle {
+  position: relative;
+  width: 55vh;
+  height: 55vh;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* OUTER GLOW */
+  box-shadow:
+    0 0 80px rgba(230,183,169,0.15),
+    0 0 160px rgba(230,183,169,0.08);
+
+  border: 1px solid rgba(230,183,169,0.15);
+
+  /* subtle breathing */
+  animation: pulseGlow 6s ease-in-out infinite;
+}
+
+
+/* INNER MATTE LAYER */
+.circle-inner {
+  position: absolute;
+  width: 85%;
+  height: 85%;
+  border-radius: 50%;
+
+  background: rgba(2,6,23,0.7);
+  backdrop-filter: blur(25px);
+
+  border: 1px solid rgba(230,183,169,0.08);
+
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
+}
+
+
+/* TEXT */
+.hero-text {
+  position: relative;
+  z-index: 2;
+
+  font-size: clamp(48px, 7vw, 110px);
+  font-weight: 600;
+  letter-spacing: 2px;
+
+  color: #e6b7a9;
+
+  text-align: center;
+
+  /* soft glow */
+  text-shadow:
+    0 0 20px rgba(230,183,169,0.25),
+    0 0 40px rgba(230,183,169,0.15);
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow:
+      0 0 60px rgba(230,183,169,0.12),
+      0 0 120px rgba(230,183,169,0.05);
+    border-color: rgba(230,183,169,0.12);
+  }
+
+  50% {
+    box-shadow:
+      0 0 120px rgba(230,183,169,0.25),
+      0 0 200px rgba(230,183,169,0.1);
+    border-color: rgba(230,183,169,0.3);
+  }
+
+  100% {
+    box-shadow:
+      0 0 60px rgba(230,183,169,0.12),
+      0 0 120px rgba(230,183,169,0.05);
+    border-color: rgba(230,183,169,0.12);
+  }
+}
 .field-control:focus {
   border-color: rgba(53, 200, 255, 0.34);
   box-shadow: 0 0 0 4px rgba(53, 200, 255, 0.08);
@@ -1332,80 +1423,4 @@ select {
   .data-table td {
     padding: 14px 16px;
   }
-}
-
-
-.glass-select {
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(121, 143, 210, 0.5);
-
-  background: rgba(22, 106, 223, 0.2);
-  backdrop-filter: blur(12px);
-
-  color: #a9cfe6;
-  font-size: 14px;
-
-  outline: none;
-  transition: 0.3s;
-}
-
-.glass-select:hover {
-  border-color: rgba(121, 143, 210, 0.5);
-  box-shadow: 0 0 10px rgba(22, 106, 223, 0.2);
-}
-
-.glass-select option {
-  background: #0b0f1a;
-  color: #fff;
-}
-
-.react-flow__edge path {
-  transition: all 0.3s ease;
-  stroke: "url(#gradient)"
-  
-}
-
-.react-flow__edge-path {
-  filter: drop-shadow(0 0 6px rgba(78, 195, 231, 0.4));
-}
-
-.route-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-
-  width: 100%;
-  height: 100vh;
-
-  z-index: 1;
-}
-
-/* Make ReactFlow fill it */
-.react-flow {
-  width: 100%;
-  height: 100%;
-}
-
-.graph-section {
-  width: 100vw;              /* full screen width */
-  height: 70vh;
-  
-  margin-left: calc(-50vw + 50%); /* breaks out of parent container */
-
-  margin-top: 40px;
-  border-radius: 20px;
-  overflow: hidden;
-  position: relative;
-  border: 1px solid rgba(234, 41, 124, 0.521);
-}
-.route-full {
-  width: 100%;
-  height: 100%;
-}
-
-.react-flow {
-  width: 100%;
-  height: 100%;
 }
