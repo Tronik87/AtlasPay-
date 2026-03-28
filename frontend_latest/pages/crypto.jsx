@@ -27,11 +27,57 @@ const COUNTRY_OPTIONS = [
 const CURRENCY_OPTIONS = ["USD", "INR", "GBP"];
 const CRYPTO_OPTIONS = ["auto", "ETH", "BTC", "USDC", "LIGHTNING"];
 
+const CURRENCY_TO_USD = {
+  USD: 1,
+  INR: 0.012,
+  GBP: 1.27,
+};
+
 const CRYPTO_BASES = {
-  ETH: { fee: 5, time: 60 },
-  BTC: { fee: 4, time: 900 },
-  USDC: { fee: 0.2, time: 5 },
-  LIGHTNING: { fee: 0.02, time: 2 },
+  ETH: {
+    networkFeeUsd: 2.4,
+    baseTimeSec: 95,
+    spreadBps: 22,
+    slippageBpsPer10k: 8,
+    reliability: 0.988,
+    liquidityDepthUsd: 250000,
+    complianceRisk: 0.45,
+    volatilityPenaltyUsd: 1.5,
+    congestionMultiplier: 1.22,
+  },
+  BTC: {
+    networkFeeUsd: 3.1,
+    baseTimeSec: 620,
+    spreadBps: 16,
+    slippageBpsPer10k: 6,
+    reliability: 0.995,
+    liquidityDepthUsd: 340000,
+    complianceRisk: 0.38,
+    volatilityPenaltyUsd: 1.1,
+    congestionMultiplier: 1.12,
+  },
+  USDC: {
+    networkFeeUsd: 0.35,
+    baseTimeSec: 11,
+    spreadBps: 4,
+    slippageBpsPer10k: 2.2,
+    reliability: 0.997,
+    liquidityDepthUsd: 700000,
+    complianceRisk: 0.24,
+    volatilityPenaltyUsd: 0.2,
+    congestionMultiplier: 1.04,
+  },
+  LIGHTNING: {
+    networkFeeUsd: 0.08,
+    baseTimeSec: 4,
+    spreadBps: 9,
+    slippageBpsPer10k: 4,
+    reliability: 0.975,
+    liquidityDepthUsd: 45000,
+    complianceRisk: 0.34,
+    volatilityPenaltyUsd: 0.8,
+    congestionMultiplier: 1.1,
+  },
 };
 
 function getRegion(country) {
@@ -50,6 +96,18 @@ function getGeoFactor(senderCountry, receiverCountry) {
   return 1.3;
 }
 
+function getGeoProfile(senderCountry, receiverCountry) {
+  if (senderCountry === receiverCountry) {
+    return { timeMultiplier: 0.82, complianceMultiplier: 0.9, liquidityMultiplier: 0.92 };
+  }
+
+  if (getRegion(senderCountry) === getRegion(receiverCountry)) {
+    return { timeMultiplier: 1, complianceMultiplier: 1.05, liquidityMultiplier: 1 };
+  }
+
+  return { timeMultiplier: 1.24, complianceMultiplier: 1.22, liquidityMultiplier: 1.16 };
+}
+
 function simulateCrypto({
   sender_country,
   receiver_country,
@@ -58,10 +116,27 @@ function simulateCrypto({
   crypto,
 }) {
   const base = CRYPTO_BASES[crypto];
-  const safeAmount = Number(amount) || 0;
+  const safeAmount = Math.max(Number(amount) || 0, 0);
+  const fxRate = CURRENCY_TO_USD[currency] || 1;
+  const amountUsd = safeAmount * fxRate;
   const geoFactor = getGeoFactor(sender_country, receiver_country);
-  const estimatedFee = base.fee * (1 + safeAmount / 10000);
-  const estimatedTime = base.time * geoFactor;
+  const geoProfile = getGeoProfile(sender_country, receiver_country);
+  const notionalScale = 1 + amountUsd / 20000;
+  const liquidityPressure = Math.max(0, amountUsd - base.liquidityDepthUsd) / base.liquidityDepthUsd;
+
+  const networkFeeUsd = base.networkFeeUsd * notionalScale;
+  const executionBps =
+    base.spreadBps + base.slippageBpsPer10k * (amountUsd / 10000) * geoProfile.liquidityMultiplier;
+  const executionCostUsd = amountUsd * (executionBps / 10000);
+  const fxSettlementCostUsd = currency === "USD" ? 0 : amountUsd * 0.0008;
+  const complianceCostUsd =
+    amountUsd * 0.00045 * base.complianceRisk * geoProfile.complianceMultiplier;
+  const estimatedFeeUsd = networkFeeUsd + executionCostUsd + fxSettlementCostUsd + complianceCostUsd;
+  const estimatedFee = estimatedFeeUsd / fxRate;
+
+  const liquidityDelaySec = base.baseTimeSec * 0.45 * liquidityPressure * geoProfile.liquidityMultiplier;
+  const estimatedTime =
+    base.baseTimeSec * geoProfile.timeMultiplier * base.congestionMultiplier + liquidityDelaySec;
   const routeName = `${sender_country} -> ${crypto} -> ${receiver_country}`;
   const senderRegion = getRegion(sender_country);
   const receiverRegion = getRegion(receiver_country);
@@ -73,6 +148,10 @@ function simulateCrypto({
     geoExplanation = "Same-region transfer kept the base network timing.";
   }
 
+  const reliabilityPenalty = (1 - base.reliability) * 24 * geoProfile.complianceMultiplier;
+  const liquidityPenalty = liquidityPressure * 2.4;
+  const score = estimatedFeeUsd + estimatedTime / 120 + reliabilityPenalty + base.volatilityPenaltyUsd + liquidityPenalty;
+
   return {
     selectedCrypto: crypto,
     routeName,
@@ -80,15 +159,16 @@ function simulateCrypto({
     estimatedTime: Number(estimatedTime.toFixed(2)),
     explanation: [
       `${crypto} was simulated for a ${currency} payment of ${safeAmount}.`,
-      `Base fee ${base.fee} scaled with amount, and base time ${base.time}s was multiplied by ${geoFactor}.`,
-      geoExplanation,
+      `Cost combines network fee, spread/slippage, FX settlement, and corridor compliance overhead for an estimated ${estimatedFee.toFixed(4)} ${currency}.`,
+      `Time combines base confirmation, corridor multiplier (${geoFactor}), congestion, and liquidity delay for ${estimatedTime.toFixed(2)} seconds.`,
+      `${geoExplanation} Reliability and volatility penalties were also applied to the final score.`,
     ].join(" "),
-    score: estimatedFee + estimatedTime / 100,
+    score,
   };
 }
 
 function pickBestCrypto(input) {
-  const candidates = ["ETH", "BTC", "USDC"].map((crypto) =>
+  const candidates = ["ETH", "BTC", "USDC", "LIGHTNING"].map((crypto) =>
     simulateCrypto({ ...input, crypto })
   );
 
@@ -195,8 +275,8 @@ export default function CryptoPage() {
             <span className="eyebrow">Crypto Routing</span>
             <h1>Evaluate crypto payment rails in a premium treasury simulation cockpit.</h1>
             <p>
-              This screen preserves the exact deterministic simulation logic while
-              presenting each route option with clearer economic and timing signals.
+              This screen uses a deterministic but more realistic route model that
+              weighs fee composition, expected settlement time, liquidity depth, and reliability.
             </p>
           </div>
 
@@ -207,7 +287,8 @@ export default function CryptoPage() {
                 {form.crypto === "auto" ? "Auto" : "Manual"}
               </div>
               <p className="metric-foot">
-                Auto mode keeps the same fee-plus-time scoring model already defined in the page logic.
+                Auto mode now ranks options using a multi-factor score: cost, timing, reliability,
+                volatility, and corridor liquidity pressure.
               </p>
             </div>
           </div>
@@ -314,7 +395,7 @@ export default function CryptoPage() {
               </h2>
               <p className="section-copy">
                 The output panel surfaces the current selected crypto, route quality,
-                and explanation using the existing simulation formula.
+                and explanation using the upgraded deterministic simulation formula.
               </p>
 
               <div style={{ marginTop: "24px", display: "grid", gap: "14px" }}>
@@ -374,7 +455,7 @@ export default function CryptoPage() {
               Crypto option comparison
             </h2>
             <p className="section-copy">
-              Every card below is derived from the same deterministic simulation logic already present in this page.
+              Every card below is derived from the same deterministic multi-factor simulation logic.
             </p>
 
             <div className="option-grid" style={{ marginTop: "26px" }}>
