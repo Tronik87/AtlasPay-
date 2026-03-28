@@ -94,7 +94,7 @@ def generate_channels(banks, density=0.05):
     return channels
 
 
-def create_large_sample(n_banks=50):
+def create_large_sample(n_banks=500):
     banks = generate_banks(n_banks)
     channels = generate_channels(banks)
     return banks, channels

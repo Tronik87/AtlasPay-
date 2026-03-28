@@ -1,0 +1,19 @@
+{
+  "path": ["BankA", "BankC", "BankD"],
+  "edges": [
+    {
+      "from": "BankA",
+      "to": "BankC",
+      "fee": 5,
+      "fx_loss": 2,
+      "time": 1,
+      "fx_rate": 0.98
+    }
+  ],
+  "summary": {
+    "total_cost": 12,
+    "total_fee": 8,
+    "total_fx_loss": 3,
+    "total_time": 2
+  }
+}
