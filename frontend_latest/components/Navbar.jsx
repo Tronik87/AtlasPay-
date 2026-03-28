@@ -1,29 +1,53 @@
+import { memo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
-export default function Navbar() {
+const navItems = [
+  { href: "/", label: "Dashboard" },
+  { href: "/simulate", label: "Payments" },
+  { href: "/route", label: "Routes" },
+  { href: "/crypto", label: "Crypto" },
+  { href: "/risk", label: "Risk" },
+  { href: "/logs", label: "Analytics" },
+];
+
+function Navbar() {
+  const router = useRouter();
+
   return (
-    <div style={{
-      position: "sticky",
-      top: 0,
-      zIndex: 10,
-      display: "flex",
-      justifyContent: "space-between",
-      padding: "20px 40px",
-      background: "rgba(2,6,23,0.6)",
-      backdropFilter: "blur(20px)",
-      borderBottom: "1px solid rgba(255,255,255,0.05)"
-    }}>
-      <div className="glow" style={{ fontWeight: "bold" }}>
-        AtlasPay
-      </div>
+    <header className="topbar">
+      <div className="topbar-inner">
+        <Link href="/" className="brand-mark stagger-1">
+          <span className="brand-logo">AP</span>
+          <span className="brand-text">
+            <span className="brand-title">AtlasPay</span>
+            <span className="brand-subtitle">Intelligent Treasury Rail</span>
+          </span>
+        </Link>
 
-      <div style={{ display: "flex", gap: "25px" }}>
-        <Link href="/">Dashboard</Link>
-        <Link href="/simulate">Simulate</Link>
-        <Link href="/route">Routes</Link>
-        <Link href="/crypto">Crypto</Link>
-        <Link href="/risk">Risk</Link>
+        <nav className="nav-links stagger-2" aria-label="Primary">
+          {navItems.map((item) => {
+            const isActive =
+              item.href === "/"
+                ? router.pathname === "/"
+                : router.pathname.startsWith(item.href);
+            const navDelay = `${80 + navItems.indexOf(item) * 70}ms`;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`nav-link${isActive ? " active" : ""}`}
+                style={{ animationDelay: navDelay }}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
       </div>
-    </div>
+    </header>
   );
 }
+
+export default memo(Navbar);

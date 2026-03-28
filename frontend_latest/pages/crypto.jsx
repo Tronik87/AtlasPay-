@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
+import GlobalBackground from "../components/GlobalBackground";
 import Navbar from "../components/Navbar";
 
 const REGION_MAP = {
@@ -96,6 +97,60 @@ function pickBestCrypto(input) {
   );
 }
 
+const optionThemes = {
+  ETH: "linear-gradient(135deg, rgba(139, 92, 246, 0.42), rgba(99, 102, 241, 0.16))",
+  BTC: "linear-gradient(135deg, rgba(247, 147, 26, 0.42), rgba(251, 191, 36, 0.16))",
+  USDC: "linear-gradient(135deg, rgba(37, 99, 235, 0.4), rgba(53, 200, 255, 0.16))",
+  LIGHTNING: "linear-gradient(135deg, rgba(250, 204, 21, 0.42), rgba(245, 158, 11, 0.14))",
+};
+
+const comparisonCryptos = ["ETH", "BTC", "USDC", "LIGHTNING"];
+
+const CryptoOptionCard = memo(function CryptoOptionCard({
+  card,
+  currency,
+  isBest,
+  isSelected,
+  animationDelay,
+}) {
+  return (
+    <div
+      className={`option-card interactive-card${isBest ? " best" : ""}${isSelected ? " selected" : ""}`}
+      style={{
+        "--option-glow": optionThemes[card.selectedCrypto],
+        animationDelay,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+        <div>
+          <div className="metric-label">{card.selectedCrypto}</div>
+          <div style={{ marginTop: "8px", fontSize: "1.15rem", fontWeight: 700, wordBreak: "break-word" }}>
+            {card.routeName}
+          </div>
+        </div>
+        {isBest ? <span className="best-badge">Best Option</span> : null}
+      </div>
+
+      <div className="option-meta">
+        <div>
+          <span>fee</span>
+          <strong>
+            {card.estimatedFee} {currency}
+          </strong>
+        </div>
+        <div>
+          <span>time</span>
+          <strong>{card.estimatedTime} sec</strong>
+        </div>
+        <div>
+          <span>score</span>
+          <strong>{card.score.toFixed(4)}</strong>
+        </div>
+      </div>
+    </div>
+  );
+});
+
 export default function CryptoPage() {
   const [form, setForm] = useState({
     sender_country: "USA",
@@ -113,159 +168,234 @@ export default function CryptoPage() {
     return simulateCrypto(form);
   }, [form]);
 
-  function handleChange(event) {
+  const cryptoCards = useMemo(
+    () =>
+      comparisonCryptos.map((crypto) =>
+        simulateCrypto({ ...form, crypto })
+      ),
+    [form]
+  );
+
+  const handleChange = useCallback((event) => {
     const { name, value } = event.target;
     setForm((current) => ({
       ...current,
       [name]: value,
     }));
-  }
+  }, []);
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="app-shell">
+      <GlobalBackground />
       <Navbar />
 
-      <main className="mx-auto max-w-6xl px-6 py-10">
-        <div className="mb-8">
-          <p className="mb-2 text-sm uppercase tracking-[0.3em] text-emerald-400">
-            Crypto Simulator
-          </p>
-          <h1 className="text-4xl font-bold">Deterministic Crypto Payment Routing</h1>
-          <p className="mt-3 max-w-2xl text-sm text-slate-300">
-            Compare fixed crypto transfer paths using deterministic fee and timing
-            rules with geographic weighting.
-          </p>
-        </div>
+      <main className="app-main page-content-layer">
+        <section className="hero">
+          <div className="hero-copy glow-orbit">
+            <span className="eyebrow">Crypto Routing</span>
+            <h1>Evaluate crypto payment rails in a premium treasury simulation cockpit.</h1>
+            <p>
+              This screen preserves the exact deterministic simulation logic while
+              presenting each route option with clearer economic and timing signals.
+            </p>
+          </div>
 
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-          <section className="rounded-3xl border border-white/10 bg-slate-950/70 p-6 shadow-2xl shadow-emerald-500/10 backdrop-blur">
-            <h2 className="mb-6 text-xl font-semibold">Simulation Inputs</h2>
-
-            <div className="grid gap-5 md:grid-cols-2">
-              <label className="block">
-                <span className="mb-2 block text-sm text-slate-300">
-                  sender_country
-                </span>
-                <select
-                  name="sender_country"
-                  value={form.sender_country}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-emerald-400"
-                >
-                  {COUNTRY_OPTIONS.map((country) => (
-                    <option key={country} value={country}>
-                      {country}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm text-slate-300">
-                  receiver_country
-                </span>
-                <select
-                  name="receiver_country"
-                  value={form.receiver_country}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-emerald-400"
-                >
-                  {COUNTRY_OPTIONS.map((country) => (
-                    <option key={country} value={country}>
-                      {country}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm text-slate-300">amount</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  name="amount"
-                  value={form.amount}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-emerald-400"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm text-slate-300">currency</span>
-                <select
-                  name="currency"
-                  value={form.currency}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-emerald-400"
-                >
-                  {CURRENCY_OPTIONS.map((currency) => (
-                    <option key={currency} value={currency}>
-                      {currency}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="block md:col-span-2">
-                <span className="mb-2 block text-sm text-slate-300">crypto</span>
-                <select
-                  name="crypto"
-                  value={form.crypto}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-emerald-400"
-                >
-                  {CRYPTO_OPTIONS.map((crypto) => (
-                    <option key={crypto} value={crypto}>
-                      {crypto}
-                    </option>
-                  ))}
-                </select>
-              </label>
+          <div className="hero-aside glass-panel float-soft stagger-2">
+            <div className="panel-content">
+              <div className="metric-label">Selection Mode</div>
+              <div className="metric-value" style={{ fontSize: "2rem" }}>
+                {form.crypto === "auto" ? "Auto" : "Manual"}
+              </div>
+              <p className="metric-foot">
+                Auto mode keeps the same fee-plus-time scoring model already defined in the page logic.
+              </p>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section className="rounded-3xl border border-emerald-400/20 bg-gradient-to-br from-emerald-500/10 via-slate-950/80 to-cyan-500/10 p-6 shadow-2xl shadow-cyan-500/10 backdrop-blur">
-            <h2 className="mb-6 text-xl font-semibold">Simulation Output</h2>
+        <section className="grid-two">
+          <div className="glass-panel interactive-card stagger-2">
+            <div className="panel-content">
+              <span className="eyebrow">Simulation Inputs</span>
+              <h2 className="section-title" style={{ marginTop: "18px", fontSize: "1.6rem" }}>
+                Payment corridor details
+              </h2>
+              <p className="section-copy">
+                Enter the same countries, amount, currency, and asset preference to
+                produce a deterministic crypto route evaluation.
+              </p>
 
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-sm text-slate-400">selected crypto</p>
-                <p className="mt-1 text-2xl font-semibold text-emerald-400">
-                  {result.selectedCrypto}
-                </p>
-              </div>
+              <div className="form-grid" style={{ marginTop: "26px" }}>
+                <label className="field">
+                  <span className="field-label">sender_country</span>
+                  <select
+                    name="sender_country"
+                    value={form.sender_country}
+                    onChange={handleChange}
+                    className="field-control"
+                  >
+                    {COUNTRY_OPTIONS.map((country) => (
+                      <option key={country} value={country}>
+                        {country}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-sm text-slate-400">route name</p>
-                <p className="mt-1 text-lg font-medium">{result.routeName}</p>
-              </div>
+                <label className="field">
+                  <span className="field-label">receiver_country</span>
+                  <select
+                    name="receiver_country"
+                    value={form.receiver_country}
+                    onChange={handleChange}
+                    className="field-control"
+                  >
+                    {COUNTRY_OPTIONS.map((country) => (
+                      <option key={country} value={country}>
+                        {country}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-sm text-slate-400">estimated fee</p>
-                  <p className="mt-1 text-xl font-semibold">
-                    {result.estimatedFee} {form.currency}
-                  </p>
-                </div>
+                <label className="field">
+                  <span className="field-label">amount</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    name="amount"
+                    value={form.amount}
+                    onChange={handleChange}
+                    className="field-control"
+                  />
+                </label>
 
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-sm text-slate-400">estimated time</p>
-                  <p className="mt-1 text-xl font-semibold">
-                    {result.estimatedTime} sec
-                  </p>
-                </div>
-              </div>
+                <label className="field">
+                  <span className="field-label">currency</span>
+                  <select
+                    name="currency"
+                    value={form.currency}
+                    onChange={handleChange}
+                    className="field-control"
+                  >
+                    {CURRENCY_OPTIONS.map((currency) => (
+                      <option key={currency} value={currency}>
+                        {currency}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-sm text-slate-400">explanation</p>
-                <p className="mt-2 text-sm leading-7 text-slate-200">
-                  {result.explanation}
-                </p>
+                <label className="field full">
+                  <span className="field-label">crypto</span>
+                  <select
+                    name="crypto"
+                    value={form.crypto}
+                    onChange={handleChange}
+                    className="field-control"
+                  >
+                    {CRYPTO_OPTIONS.map((crypto) => (
+                      <option key={crypto} value={crypto}>
+                        {crypto}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               </div>
             </div>
-          </section>
-        </div>
+          </div>
+
+          <div className="glass-panel interactive-card stagger-3">
+            <div className="panel-content fade-slide">
+              <span className="eyebrow">Selected Outcome</span>
+              <h2 className="section-title" style={{ marginTop: "18px", fontSize: "1.6rem" }}>
+                Recommended route snapshot
+              </h2>
+              <p className="section-copy">
+                The output panel surfaces the current selected crypto, route quality,
+                and explanation using the existing simulation formula.
+              </p>
+
+              <div style={{ marginTop: "24px", display: "grid", gap: "14px" }}>
+                <div className="option-card best float-soft" style={{ "--option-glow": optionThemes[result.selectedCrypto] }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start" }}>
+                    <div>
+                      <div className="metric-label">selected crypto</div>
+                      <div className="metric-value" style={{ fontSize: "2.2rem", marginTop: "12px" }}>
+                        {result.selectedCrypto}
+                      </div>
+                    </div>
+                    <span className="best-badge">
+                      {form.crypto === "auto" ? "Best Option" : "Selected"}
+                    </span>
+                  </div>
+
+                  <div className="subtle-divider" style={{ margin: "18px 0" }} />
+
+                  <div className="metric-label">route name</div>
+                  <div style={{ marginTop: "8px", fontSize: "1.1rem", fontWeight: 600 }}>
+                    {result.routeName}
+                  </div>
+
+                  <div className="option-meta">
+                    <div>
+                      <span>estimated fee</span>
+                      <strong>
+                        {result.estimatedFee} {form.currency}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>estimated time</span>
+                      <strong>{result.estimatedTime} sec</strong>
+                    </div>
+                    <div>
+                      <span>score</span>
+                      <strong>{result.score.toFixed(4)}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="option-card stagger-4" style={{ "--option-glow": "linear-gradient(135deg, rgba(53, 200, 255, 0.2), rgba(139, 92, 246, 0.1))" }}>
+                  <div className="metric-label">explanation</div>
+                  <p className="metric-foot" style={{ marginTop: "12px", color: "var(--muted-strong)" }}>
+                    {result.explanation}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="glass-panel interactive-card stagger-4" style={{ marginTop: "24px" }}>
+          <div className="panel-content">
+            <span className="eyebrow">Route Matrix</span>
+            <h2 className="section-title" style={{ marginTop: "18px", fontSize: "1.6rem" }}>
+              Crypto option comparison
+            </h2>
+            <p className="section-copy">
+              Every card below is derived from the same deterministic simulation logic already present in this page.
+            </p>
+
+            <div className="option-grid" style={{ marginTop: "26px" }}>
+              {cryptoCards.map((card, index) => {
+                const isBest = form.crypto === "auto" && card.selectedCrypto === result.selectedCrypto;
+                const isSelected = form.crypto !== "auto" && card.selectedCrypto === result.selectedCrypto;
+
+                return (
+                  <CryptoOptionCard
+                    key={card.selectedCrypto}
+                    card={card}
+                    currency={form.currency}
+                    isBest={isBest}
+                    isSelected={isSelected}
+                    animationDelay={`${120 + index * 90}ms`}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   );
